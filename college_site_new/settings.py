@@ -19,7 +19,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # 🔹 Set to True only for development
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
