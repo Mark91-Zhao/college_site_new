@@ -1,33 +1,35 @@
-{% load static %}
 {% extends "portal/base.html" %}
+{% load static %}
 
-<h2 class="text-success">Official Transcript</h2>
+{% block title %}Official Transcript{% endblock %}
 
-<h5>
-{{ student.user.get_full_name }} - {{ student.reg_number }}
-</h5>
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-success">📜 Official Transcript</h2>
 
-<table class="table table-bordered mt-3">
-    <thead class="table-success">
-        <tr>
-            <th>Course</th>
-            <th>Marks</th>
-            <th>Grade</th>
-            <th>Points</th>
-        </tr>
-    </thead>
-    <tbody>
+    <h5>
+        {{ student.user.get_full_name }} — {{ student.reg_number }}
+    </h5>
 
-        {% for course in courses %}
-        <tr>
-            <td>{{ course.name }}</td>
-            <td>{{ course.marks }}</td>
-            <td>{{ course.get_grade_letter }}</td>
-            <td>{{ course.get_grade_point }}</td>
-        </tr>
-        {% endfor %}
-
-    </tbody>
-</table>
-
+    <table class="table table-bordered mt-3">
+        <thead class="table-success">
+            <tr>
+                <th>Course</th>
+                <th>Marks</th>
+                <th>Grade</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td>{{ course.name }}</td>
+                <td>{{ course.marks }}</td>
+                <td>{{ course.get_grade_letter }}</td>
+                <td>{{ course.get_grade_point }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
