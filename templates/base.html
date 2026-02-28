@@ -3,20 +3,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MCFW Portal</title>
+    <title>{% block title %}MCFW Portal{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Icons -->
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Custom Styles -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <!-- Favicon -->
-    <link rel="icon" href="{% static 'images/favicon.ico' %}">
 </head>
 
 <body class="bg-light">
@@ -27,7 +25,7 @@
     <div class="bg-success text-white p-3 vh-100" style="width:250px;">
 
         <h4 class="fw-bold text-center mb-4">
-            <img src="{% static 'images/logo.png' %}" height="50"><br>
+            <img src="{% static 'images/logo.png' %}" height="50" alt="Logo"><br>
             MCFW
         </h4>
 
@@ -60,7 +58,7 @@
                 <li class="nav-item mt-3">
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button class="btn btn-light btn-sm w-100">
+                        <button type="submit" class="btn btn-light btn-sm w-100">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </button>
                     </form>
@@ -97,6 +95,7 @@
 
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
