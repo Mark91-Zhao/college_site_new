@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Excel Upload | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white text-center">
+                <i class="bi bi-upload fs-2"></i>
+                <h4 class="mb-0">Upload Academic Records</h4>
+            </div>
+            <div class="card-body">
+                <!-- Flash messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Upload form -->
+                <form method="post" enctype="multipart/form-data" novalidate id="excelUploadForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">Select Excel File</label>
+                        <div class="input-group" data-bs-toggle="tooltip" data-bs-placement="right" title="Upload .xls or .xlsx file with student records">
+                            <span class="input-group-text"><i class="bi bi-file-earmark-excel"></i></span>
+                            <input type="file" name="excel_file" id="excel_file" 
+                                   class="form-control {% if form.errors.excel_file %}is-invalid{% elif form.is_bound %}is-valid{% endif %}" 
+                                   accept=".xls,.xlsx" required>
+                        </div>
+                        {% if form.errors.excel_file %}
+                            <div class="invalid-feedback d-block">{{ form.errors.excel_file }}</div>
+                        {% endif %}
+                        <small class="text-muted">Only Excel files (.xls, .xlsx) are allowed.</small>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-secondary" id="uploadBtn">
+                            <i class="bi bi-cloud-arrow-up"></i> Upload File
+                        </button>
+                    </div>
+                    <div class="mt-3 text-center d-none" id="uploadSpinner">
+                        <div class="spinner-border text-secondary" role="status">
+                            <span class="visually-hidden">Uploading...</span>
+                        </div>
+                        <p class="mt-2">Processing your file, please wait...</p>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small><i class="bi bi-info-circle"></i> Ensure the file follows the required format before uploading. Uploads are logged for accountability.</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Real-time validation + spinner -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("excelUploadForm");
+    const fileInput = document.getElementById("excel_file");
+    const spinner = document.getElementById("uploadSpinner");
+    const uploadBtn = document.getElementById("uploadBtn");
+
+    // Enable Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Show spinner on submit
+    form.addEventListener("submit", function() {
+        spinner.classList.remove("d-none");
+        uploadBtn.disabled = true;
+    });
+
+    // Real-time validation for file type
+    fileInput.addEventListener("change", function() {
+        const allowedExtensions = [".xls", ".xlsx"];
+        const fileName = fileInput.value.toLowerCase();
+        if (allowedExtensions.some(ext => fileName.endsWith(ext))) {
+            fileInput.classList.remove("is-invalid");
+            fileInput.classList.add("is-valid");
+        } else {
+            fileInput.classList.remove("is-valid");
+            fileInput.classList.add("is-invalid");
+        }
+    });
+});
+</script>
+{% endblock %}

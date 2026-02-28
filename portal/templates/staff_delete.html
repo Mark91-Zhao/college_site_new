@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Delete Staff | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white text-center">
+                <i class="bi bi-exclamation-triangle fs-2"></i>
+                <h4 class="mb-0">Confirm Staff Deletion</h4>
+            </div>
+            <div class="card-body">
+                {% if staff %}
+                    <p class="lead text-muted text-center">
+                        Are you sure you want to delete the following staff record?
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p><i class="bi bi-person-badge"></i> <strong>Name:</strong> {{ staff.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="bi bi-upc"></i> <strong>Staff ID:</strong> {{ staff.staff_id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="bi bi-building"></i> <strong>Department:</strong> {{ staff.department }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="bi bi-briefcase"></i> <strong>Role:</strong> {{ staff.role }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation form -->
+                    <form method="post" class="mt-4 text-center">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger me-2">
+                            <i class="bi bi-trash"></i> Yes, Delete
+                        </button>
+                        <a href="{% url 'staff_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning text-center">
+                        <i class="bi bi-exclamation-circle"></i> No staff record found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

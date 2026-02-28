@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-success">Official Transcript</h2>
+
+<h5>
+{{ student.user.get_full_name }} - {{ student.reg_number }}
+</h5>
+
+<table class="table table-bordered mt-3">
+    <thead class="table-success">
+        <tr>
+            <th>Course</th>
+            <th>Marks</th>
+            <th>Grade</th>
+            <th>Points</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.name }}</td>
+            <td>{{ course.marks }}</td>
+            <td>{{ course.get_grade_letter }}</td>
+            <td>{{ course.get_grade_point }}</td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+{% endblock %}

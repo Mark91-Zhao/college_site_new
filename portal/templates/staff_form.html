@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Staff Form</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-3">
+                <label for="id_name" class="form-label">Name</label>
+                {{ form.name }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_department" class="form-label">Department</label>
+                {{ form.department }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_role" class="form-label">Role</label>
+                {{ form.role }}
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'staff_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Transcript Verification | Malawi College of Forestry & Wildlife{% endblock %}
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Breadcrumb Navigation with Logo -->
+    <nav aria-label="breadcrumb" class="no-print">
+        <ol class="breadcrumb align-items-center">
+            <li class="breadcrumb-item d-flex align-items-center">
+                <img src="{% static 'images/logo.png' %}" alt="College Logo" style="height:24px; width:auto; margin-right:8px;">
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-house-door"></i> Home
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Transcript Verification
+            </li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-shield-check"></i> Transcript Verification</h4>
+        </div>
+        <div class="card-body">
+            {% if student %}
+                <h5 class="fw-bold text-success">Transcript Verified</h5>
+                <p class="text-muted">This transcript belongs to:</p>
+                <ul class="list-group mb-4">
+                    <li class="list-group-item"><strong>Name:</strong> {{ student.name }}</li>
+                    <li class="list-group-item"><strong>Registration Number:</strong> {{ student.reg_number }}</li>
+                    <li class="list-group-item"><strong>Program:</strong> {{ student.program }}</li>
+                </ul>
+
+                <!-- Collapsible Semester Sections -->
+                <div class="accordion" id="semesterAccordion">
+                    {% for semester in semesters %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                <button class="accordion-button collapsed no-print" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                                    <i class="bi bi-journal-bookmark"></i> Semester: {{ semester.name }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse show" aria-labelledby="heading{{ forloop.counter }}">
+                                <div class="accordion-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Code</th>
+                                                    <th>Course Name</th>
+                                                    <th>Marks</th>
+                                                    <th>Grade</th>
+                                                    <th>GPA</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for course in courses %}
+                                                    {% if course.semester == semester %}
+                                                        <tr>
+                                                            <td>{{ course.code }}</td>
+                                                            <td>{{ course.name }}</td>
+                                                            <td>{{ course.mark }}%</td>
+                                                            <td>
+                                                                {% if course.mark >= 80 %}A
+                                                                {% elif course.mark >= 70 %}B
+                                                                {% elif course.mark >= 60 %}C
+                                                                {% elif course.mark >= 50 %}D
+                                                                {% else %}F
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                {% if course.mark >= 80 %}4.0
+                                                                {% elif course.mark >= 70 %}3.0
+                                                                {% elif course.mark >= 60 %}2.0
+                                                                {% elif course.mark >= 50 %}1.0
+                                                                {% else %}0.0
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Download, Share, Back, Print Buttons -->
+                <div class="mt-4 text-center no-print">
+                    <a href="{% url 'export_pdf' %}" class="btn btn-outline-success btn-lg">
+                        <i class="bi bi-file-earmark-pdf"></i> Download Verified Transcript (PDF)
+                    </a>
+                </div>
+
+                <div class="mt-3 text-center no-print">
+                    <p class="text-muted">Share this verification link:</p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a href="https://wa.me/?text=Verify%20my%20transcript%20here:%20{{ request.build_absolute_uri }}" 
+                           target="_blank" class="btn btn-success btn-sm">
+                            <i class="bi bi-whatsapp"></i> WhatsApp
+                        </a>
+                        <a href="mailto:?subject=Transcript%20Verification&body=Verify%20my%20transcript%20here:%20{{ request.build_absolute_uri }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-envelope"></i> Email
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyLink()">
+                            <i class="bi bi-link-45deg"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center no-print">
+                    <a href="{% url 'dashboard' %}" class="btn btn-dark btn-lg">
+                        <i class="bi bi-house-door"></i> Back to Portal Dashboard
+                    </a>
+                </div>
+
+                <div class="mt-3 text-center no-print">
+                    <button class="btn btn-outline-info btn-lg" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print Transcript Verification
+                    </button>
+                </div>
+
+                <!-- Toast Notification -->
+                <div class="position-fixed bottom-0 end-0 p-3 no-print" style="z-index: 11">
+                    <div id="copyToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                Link copied to clipboard!
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function copyLink() {
+                        navigator.clipboard.writeText("{{ request.build_absolute_uri }}");
+                        var toastEl = document.getElementById('copyToast');
+                        var toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                    }
+                </script>
+
+            {% else %}
+                <h5 class="text-danger">Transcript Not Found</h5>
+                <p>Please check the registration number and try again.</p>
+            {% endif %}
+        </div>
+        <div class="card-footer text-muted text-center">
+            <small>&copy; {{ now|date:"Y" }} Malawi College of Forestry & Wildlife Portal | Verified by Head of Academics</small>
+        </div>
+    </div>
+</div>
+
+    <!-- Signature block for print -->
+    <div class="print-signature mt-4">
+        <img src="{% static 'images/signature.png' %}" alt="Head of Academics Signature" style="height:80px; width:auto; opacity:0.8;">
+        <p class="mt-2"><strong>Head of Academics</strong><br>
+        Malawi College of Forestry & Wildlife</p>
+        <p class="mt-2"><em>Issued on: {{ now|date:"d F Y" }}</em></p>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .card-header {
+        background: none !important;
+        color: black !important;
+    }
+    .card-footer {
+        border-top: none !important;
+    }
+
+    /* Logo watermark styling */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        background: url("{% static 'images/logo.png' %}") no-repeat center center;
+        background-size: 300px auto;
+        opacity: 0.08;
+        width: 600px;
+        height: 600px;
+        z-index: -1;
+    }
+
+    /* Ensure signature and date are visible in print */
+    .print-signature {
+        display: block !important;
+    }
+}
+@media screen {
+    .print-signature {
+        display: none; /* hide signature/date on screen, only show in print */
+    }
+}
+</style>
+

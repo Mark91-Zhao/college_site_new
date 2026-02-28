@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Student Login</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="reg_number" class="form-label">Registration Number</label>
+                <input type="text" name="reg_number" id="reg_number" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" name="password" id="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-success">Login</button>
+            <a href="{% url 'student_register' %}" class="btn btn-secondary">Sign Up</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

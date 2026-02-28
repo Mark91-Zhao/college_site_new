@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Logout | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-box-arrow-right fs-2"></i>
+                <h4 class="mb-0">Logged Out</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead text-muted">
+                    You have successfully logged out of the portal.
+                </p>
+                <p>
+                    Thank you for using the Malawi College of Forestry & Wildlife Portal.  
+                    For security, please close your browser if you are on a shared device.
+                </p>
+                <div class="mt-4">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                    <a href="{% url 'student_login' %}" class="btn btn-outline-success me-2">
+                        <i class="bi bi-person"></i> Student Login
+                    </a>
+                    <a href="{% url 'staff_login' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-badge"></i> Staff Login
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>&copy; {{ now|date:"Y" }} Malawi College of Forestry & Wildlife Portal | Designed by <strong>Mark</strong></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

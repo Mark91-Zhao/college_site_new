@@ -1,0 +1,29 @@
+{% extends "exams/base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center; margin-top:10px;">Welcome to MCFW Portal</h2>
+
+<div style="text-align:center; margin-top:20px;">
+    <a class="btn" href="{% url 'exams:register_student' %}">Register Student</a>
+    <a class="btn" href="{% url 'exams:student_login' %}">Student Login</a>
+    <a class="btn" href="{% url 'exams:staff_login' %}">Staff Login</a>
+    <a class="btn" href="{% url 'exams:add_result' %}">Add Result</a>
+    <a class="btn" href="{% url 'exams:student_results' %}">View Results</a>
+</div>
+
+<hr style="margin:30px 0;">
+<h3>Semesters</h3>
+<table>
+    <tr><th>Name</th><th>Start</th><th>End</th></tr>
+    {% for s in semesters %}
+    <tr>
+        <td>{{ s.name }}</td>
+        <td>{{ s.start_date }}</td>
+        <td>{{ s.end_date }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3" style="text-align:center;">No semesters defined</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

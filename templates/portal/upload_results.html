@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bulk Upload Results</title>
+</head>
+<body>
+
+    <h2>Bulk Upload Results (CSV)</h2>
+
+    <!-- Display Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color: green;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Upload Form -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Select CSV File:</label><br><br>
+        <input type="file" name="file" accept=".csv" required>
+        <br><br>
+        <button type="submit">Upload Results</button>
+    </form>
+
+    <br><br>
+
+    <!-- Download Template -->
+    <a href="{% url 'portal:download_results_template' %}">
+        📥 Download Official CSV Template
+    </a>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Enter Results | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white text-center">
+                <i class="bi bi-bar-chart-line fs-2"></i>
+                <h4 class="mb-0">Enter Student Results</h4>
+            </div>
+            <div class="card-body">
+                <!-- Flash messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Results entry form -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="student" class="form-label">Student</label>
+                        <select name="student" id="student" class="form-select" required>
+                            <option value="" disabled selected>Select student</option>
+                            {% for student in students %}
+                                <option value="{{ student.pk }}">{{ student.name }} ({{ student.reg_number }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="course" class="form-label">Course</label>
+                        <select name="course" id="course" class="form-select" required>
+                            <option value="" disabled selected>Select course</option>
+                            {% for course in courses %}
+                                <option value="{{ course.pk }}">{{ course.code }} - {{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select name="semester" id="semester" class="form-select" required>
+                            <option value="" disabled selected>Select semester</option>
+                            {% for semester in semesters %}
+                                <option value="{{ semester.pk }}">{{ semester.name }} ({{ semester.year }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="marks" class="form-label">Marks (%)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-percent"></i></span>
+                            <input type="number" name="marks" id="marks" class="form-control" placeholder="Enter marks (0-100)" min="0" max="100" required>
+                        </div>
+                        <small class="text-muted">Grade and GPA will be auto-calculated based on marks.</small>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-info">
+                            <i class="bi bi-check-circle"></i> Save Result
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small><i class="bi bi-info-circle"></i> Ensure accuracy before submitting. Marks determine grade and GPA automatically.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

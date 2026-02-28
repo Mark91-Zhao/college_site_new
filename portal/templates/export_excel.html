@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Export Excel | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-download fs-2"></i>
+                <h4 class="mb-0">Export Academic Records (Excel)</h4>
+            </div>
+            <div class="card-body">
+                <!-- Flash messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <p class="lead text-muted">
+                    Your academic records are ready for export. Click the button below to download the Excel file.
+                </p>
+
+                <!-- Export button -->
+                <div class="mt-4">
+                    <a href="{% url 'export_excel_file' %}" class="btn btn-info">
+                        <i class="bi bi-file-earmark-excel"></i> Download Excel File
+                    </a>
+                </div>
+
+                <!-- File details -->
+                <div class="mt-4 text-start">
+                    <p><i class="bi bi-calendar"></i> <strong>Generated on:</strong> {{ now|date:"F j, Y, g:i a" }}</p>
+                    <p><i class="bi bi-person-badge"></i> <strong>Exported by:</strong> {{ request.user.username }}</p>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>&copy; {{ now|date:"Y" }} Malawi College of Forestry & Wildlife Portal | Designed by <strong>Mark</strong></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

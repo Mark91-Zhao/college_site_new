@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row mt-4">
+    <!-- Profile Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-person-circle fs-2"></i>
+                <h5 class="mb-0">My Profile</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ student.name }}</strong></p>
+                <p>{{ student.reg_number }}</p>
+                <a href="{% url 'student_profile' student.pk %}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-eye"></i> View Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-bar-chart-line fs-2"></i>
+                <h5 class="mb-0">My Results</h5>
+            </div>
+            <div class="card-body">
+                <p>Check your academic performance and GPA.</p>
+                <a href="{% url 'student_results' %}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-eye"></i> View Results
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transcript Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-secondary text-white">
+                <i class="bi bi-file-earmark-text fs-2"></i>
+                <h5 class="mb-0">Transcript</h5>
+            </div>
+            <div class="card-body">
+                <p>Download your official transcript.</p>
+                <a href="{% url 'export_pdf' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-download"></i> Export Transcript
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

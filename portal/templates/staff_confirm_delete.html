@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Confirm Delete</h5>
+    </div>
+    <div class="card-body">
+        <p>Are you sure you want to delete the staff member:</p>
+        <ul>
+            <li><strong>Name:</strong> {{ staff.name }}</li>
+            <li><strong>Department:</strong> {{ staff.department }}</li>
+            <li><strong>Role:</strong> {{ staff.role }}</li>
+        </ul>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'staff_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

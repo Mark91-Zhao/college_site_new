@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Add Course | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white text-center">
+                <i class="bi bi-plus-circle fs-2"></i>
+                <h4 class="mb-0">Add New Course</h4>
+            </div>
+            <div class="card-body">
+                <!-- Flash messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Course form -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="code" class="form-label">Course Code</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-upc"></i></span>
+                            <input type="text" name="code" id="code" class="form-control" placeholder="e.g., FOR101" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Course Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-book"></i></span>
+                            <input type="text" name="name" id="name" class="form-control" placeholder="Enter course name" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="credit_hours" class="form-label">Credit Hours</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                            <input type="number" name="credit_hours" id="credit_hours" class="form-control" min="1" max="6" placeholder="Enter credit hours" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="marks" class="form-label">Marks</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-bar-chart-line"></i></span>
+                            <input type="number" name="marks" id="marks" class="form-control" min="0" max="100" placeholder="Enter marks" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-info">Add Course</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small><a href="{% url 'course_list' %}">Back to Course List</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

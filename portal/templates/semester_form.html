@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Semester Form</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-3">
+                <label for="id_student" class="form-label">Student</label>
+                {{ form.student }}
+                {{ form.student.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_name" class="form-label">Semester Name</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_year" class="form-label">Year</label>
+                {{ form.year }}
+                {{ form.year.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'semester_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

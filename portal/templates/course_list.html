@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Course List | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-10">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'portal:staff_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Courses</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-journal-bookmark"></i> Course List</h4>
+                <a href="{% url 'portal:course_create' %}" class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-circle"></i> Add Course
+                </a>
+            </div>
+            <div class="card-body">
+                {% if courses %}
+                    <table class="table table-striped table-hover">
+                        <thead class="table-info">
+                            <tr>
+                                <th scope="col">Code</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Credits</th>
+                                <th scope="col">Semester</th>
+                                <th scope="col" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                                <tr>
+                                    <td>{{ course.code }}</td>
+                                    <td>{{ course.title }}</td>
+                                    <td>{{ course.credits }}</td>
+                                    <td>{{ course.semester }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'portal:course_detail' course.pk %}" class="btn btn-outline-info btn-sm me-1">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{% url 'portal:course_update' course.pk %}" class="btn btn-outline-warning btn-sm me-1">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <a href="{% url 'portal:course_delete' course.pk %}" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle"></i> No courses found. Please add a new course.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted text-center">
+                <small>&copy; {{ now|date:"Y" }} Malawi College of Forestry & Wildlife Portal | Designed by <strong>Mark</strong></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

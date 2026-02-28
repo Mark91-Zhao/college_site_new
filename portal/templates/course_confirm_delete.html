@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Confirm Delete</h5>
+    </div>
+    <div class="card-body">
+        <p>Are you sure you want to delete the course:</p>
+        <ul>
+            <li><strong>Name:</strong> {{ course.name }}</li>
+            <li><strong>Student:</strong> {{ course.student.name }}</li>
+            <li><strong>Semester:</strong> {{ course.semester.name }} ({{ course.semester.year }})</li>
+            <li><strong>Credit Hours:</strong> {{ course.credit_hours }}</li>
+            <li><strong>Marks:</strong> {{ course.marks }}</li>
+            <li><strong>Grade Point:</strong> {{ course.get_grade_point }}</li>
+        </ul>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            <a href="{% url 'course_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

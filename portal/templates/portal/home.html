@@ -1,0 +1,103 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<div class="text-center mb-5">
+
+    <h1 class="display-5 fw-bold text-success">
+        Welcome to MCFW Portal
+    </h1>
+
+    <p class="lead">
+        Academic Management System for Students and Staff
+    </p>
+
+</div>
+
+<div class="row g-4">
+
+    <!-- Student Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center">
+            <div class="card-body">
+
+                <h4 class="card-title text-success">
+                    Student Portal
+                </h4>
+
+                <p class="card-text">
+                    View results, GPA, transcript and academic status.
+                </p>
+
+                {% if user.is_authenticated and user.student %}
+                    <a href="{% url 'portal:student_dashboard' %}"
+                       class="btn btn-success">
+                        Go to Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}"
+                       class="btn btn-outline-success">
+                        Login as Student
+                    </a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center">
+            <div class="card-body">
+
+                <h4 class="card-title text-success">
+                    Staff Portal
+                </h4>
+
+                <p class="card-text">
+                    Manage students, courses and academic records.
+                </p>
+
+                {% if user.is_authenticated and user.staff %}
+                    <a href="{% url 'portal:staff_dashboard' %}"
+                       class="btn btn-success">
+                        Go to Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}"
+                       class="btn btn-outline-success">
+                        Login as Staff
+                    </a>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100 text-center">
+            <div class="card-body">
+
+                <h4 class="card-title text-success">
+                    Admin Panel
+                </h4>
+
+                <p class="card-text">
+                    System administration and user management.
+                </p>
+
+                <a href="/admin/"
+                   class="btn btn-outline-dark">
+                    Go to Admin
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "exams/base.html" %}
+{% block title %}Results{% endblock %}
+
+{% block content %}
+<h1 style="text-align:center; margin-top:20px;">Student Results</h1>
+
+<form method="get" style="max-width:700px; margin:10px auto; padding:10px; background:#fff; border-radius:6px;">
+    <label>Registration Number</label>
+    <input type="text" name="registration_number" value="{{ request.GET.registration_number }}" style="padding:6px; width:40%; margin-right:10px;">
+    <label>Semester</label>
+    <select name="semester" style="padding:6px; width:30%; margin-right:10px;">
+        <option value="">-- select --</option>
+        {% for s in semesters %}
+            <option value="{{ s.id }}" {% if semester and semester.id == s.id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn">View</button>
+</form>
+
+{% if student and semester %}
+<p style="text-align:center; margin-top:10px;">Results for <strong>{{ student.name }}</strong> ({{ student.registration_number }}) — <em>{{ semester.name }}</em></p>
+
+<table style="max-width:800px; margin:10px auto; background:#fff;">
+    <tr>
+        <th>Course</th>
+        <th>Score</th>
+        <th>Grade</th>
+    </tr>
+    {% for r in results %}
+    <tr>
+        <td>{{ r.course.name }} ({{ r.course.code }})</td>
+        <td style="text-align:center;">{{ r.score }}</td>
+        <td style="text-align:center;">{{ r.grade }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p style="text-align:center; margin-top:10px;">GPA: <strong>{{ gpa }}</strong> — {{ classification }}</p>
+<p style="text-align:center;">Status: <strong>{{ status }}</strong></p>
+{% else %}
+<p style="text-align:center; margin-top:20px;">Enter registration number and semester to view results.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Add Semester | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark text-center">
+                <i class="bi bi-plus-circle fs-2"></i>
+                <h4 class="mb-0">Add New Semester</h4>
+            </div>
+            <div class="card-body">
+                <!-- Flash messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Semester form -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Semester Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                            <input type="text" name="name" id="name" class="form-control" placeholder="e.g., Semester 1" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Year</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                            <input type="number" name="year" id="year" class="form-control" min="1" max="5" placeholder="Enter year of study" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="program" class="form-label">Program</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-journal-bookmark"></i></span>
+                            <input type="text" name="program" id="program" class="form-control" placeholder="Enter program name" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning text-dark">Add Semester</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small><a href="{% url 'semester_list' %}">Back to Semester List</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

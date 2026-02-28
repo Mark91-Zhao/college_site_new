@@ -1,0 +1,84 @@
+{% extends "exams/base.html" %}
+{% load static %}
+{% block title %}Register Student{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/forms.css' %}">
+
+<div class="container" style="max-width:720px;">
+  <h1 class="text-center mt-4 mb-3">Register Student</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" action="{% url 'exams:register_student' %}" class="card p-4 mb-4" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-3">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.name.id_for_label }}"><strong>Name</strong></label>
+      {{ form.name }}
+      {% if form.name.help_text %}
+        <div class="form-text">{{ form.name.help_text }}</div>
+      {% endif %}
+      {% if form.name.errors %}
+        <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.registration_number.id_for_label }}"><strong>Registration Number</strong></label>
+      {{ form.registration_number }}
+      {% if form.registration_number.help_text %}
+        <div class="form-text">{{ form.registration_number.help_text }}</div>
+      {% endif %}
+      {% if form.registration_number.errors %}
+        <div class="text-danger small mt-1">{{ form.registration_number.errors.0 }}</div>
+      {% endif %}
+    </div>
+
+    {% if form.email %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ form.email.id_for_label }}"><strong>Email</strong></label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% for field in form.visible_fields %}
+      {% if field.name not in "name registration_number email" %}
+        <div class="mb-3">
+          <label class="form-label" for="{{ field.id_for_label }}"><strong>{{ field.label }}</strong></label>
+          {{ field }}
+          {% if field.help_text %}
+            <div class="form-text">{{ field.help_text }}</div>
+          {% endif %}
+          {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Register</button>
+  </form>
+
+  {% if student %}
+    <div class="text-center">
+      <strong>Registered</strong>: {{ student.name }} — {{ student.registration_number }}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

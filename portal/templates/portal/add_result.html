@@ -1,0 +1,44 @@
+{% extends "portal/base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Add Result</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Registration Number</label>
+            <input type="text" name="reg_number" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Course</label>
+            <select name="course" class="form-select" required>
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label>Semester</label>
+            <select name="semester" class="form-select" required>
+                {% for semester in semesters %}
+                <option value="{{ semester.id }}">{{ semester.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label>Marks</label>
+            <input type="number" name="marks" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Save Result
+        </button>
+    </form>
+</div>
+
+{% endblock %}

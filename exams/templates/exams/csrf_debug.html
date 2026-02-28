@@ -1,0 +1,26 @@
+{% extends "exams/base.html" %}
+{% block title %}CSRF Debug{% endblock %}
+
+{% block content %}
+<h2 style="text-align:center; margin-top:20px;">CSRF Debug</h2>
+
+<div style="max-width:800px; margin:20px auto; background:#fff; padding:20px; border-radius:8px;">
+    <p><strong>Request method:</strong> {{ method }}</p>
+    <p><strong>Expected token (server):</strong> <code style="word-break:break-all;">{{ expected_token }}</code></p>
+
+    <h3>Submit a POST to inspect submitted tokens</h3>
+    <form method="post" action="" style="margin-bottom:16px;">
+        {% csrf_token %}
+        <label>Sample field</label><br>
+        <input type="text" name="sample" value="test" style="width:100%; padding:8px; margin-bottom:8px;"><br>
+        <button type="submit" class="btn">Submit POST</button>
+    </form>
+
+    <h4>Submitted tokens</h4>
+    <p><strong>Form token (csrfmiddlewaretoken):</strong> <code style="word-break:break-all;">{{ submitted_form_token }}</code></p>
+    <p><strong>Header token (X-CSRFToken):</strong> <code style="word-break:break-all;">{{ submitted_header_token }}</code></p>
+
+    <hr>
+    <p style="color:#b00;"><strong>Important:</strong> This debug view is CSRF-exempt and should be removed after debugging. Do not leave it enabled on production.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">Add / Edit Course</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-3">
+                <label for="id_student" class="form-label">Student</label>
+                {{ form.student }}
+                {{ form.student.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_semester" class="form-label">Semester</label>
+                {{ form.semester }}
+                {{ form.semester.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_name" class="form-label">Course Name</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_credit_hours" class="form-label">Credit Hours</label>
+                {{ form.credit_hours }}
+                {{ form.credit_hours.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_marks" class="form-label">Marks</label>
+                {{ form.marks }}
+                {{ form.marks.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-success">Save</button>
+            <a href="{% url 'course_list' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

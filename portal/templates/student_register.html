@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Registration | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white text-center">
+                <img src="{% static 'images/logo.png' %}" alt="College Logo" height="60" class="mb-2">
+                <h4 class="mb-0"><i class="bi bi-person-plus"></i> Student Registration</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" action="{% url 'portal:student_register' %}" novalidate id="registrationForm">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                            <input type="text" name="name" id="name" class="form-control" placeholder="Enter full name" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reg_number" class="form-label">Registration Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-upc"></i></span>
+                            <input type="text" name="reg_number" id="reg_number" class="form-control" placeholder="e.g., MCW2026-001" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="program" class="form-label">Program</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-journal-bookmark"></i></span>
+                            <input type="text" name="program" id="program" class="form-control" placeholder="Enter program name" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Year of Study</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                            <input type="number" name="year" id="year" class="form-control" min="1" max="5" placeholder="Enter year of study" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" id="email" class="form-control" placeholder="Enter email address" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input type="text" name="phone_number" id="phone_number" class="form-control" placeholder="Enter phone number" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="confirm_password" id="confirm_password" class="form-control" placeholder="Confirm password" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Register
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer text-center">
+                <small>
+                    Already registered? <a href="{% url 'portal:student_login' %}">Login here</a>
+                    &nbsp;|&nbsp;
+                    <a href="{% url 'home' %}">Go back home</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("registrationForm");
+    if (!form) return;
+    const inputs = form.querySelectorAll("input");
+
+    inputs.forEach(input => {
+        input.addEventListener("input", function() {
+            if (input.checkValidity()) {
+                input.classList.remove("is-invalid");
+                input.classList.add("is-valid");
+            } else {
+                input.classList.remove("is-valid");
+                input.classList.add("is-invalid");
+            }
+        });
+    });
+
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirm_password");
+    if (password && confirmPassword) {
+        confirmPassword.addEventListener("input", function() {
+            if (confirmPassword.value === password.value && confirmPassword.value !== "") {
+                confirmPassword.classList.remove("is-invalid");
+                confirmPassword.classList.add("is-valid");
+            } else {
+                confirmPassword.classList.remove("is-valid");
+                confirmPassword.classList.add("is-invalid");
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}MCFW Portal{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f4f4f4; }
+        header { background-color:#006400; color:white; text-align:center; padding:20px; }
+        header img { height:80px; margin-bottom:10px; }
+        footer { background-color:#006400; color:white; text-align:center; padding:10px; margin-top:30px; }
+        .card { background-color:#228B22; color:white; padding:20px; border-radius:8px; width:220px; cursor:pointer; text-align:center; }
+        .card h2 { margin:10px 0; }
+        .card-container { display:flex; justify-content:center; gap:30px; margin-top:40px; }
+        .container { max-width:1000px; margin:20px auto; padding:0 20px; }
+        .btn { background-color:#006400; color:white; padding:8px 12px; border-radius:4px; text-decoration:none; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:8px; border:1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="{% static 'images/college_logo.png' %}" alt="College Logo">
+        <h1>Malawi College of Forestry & Wildlife Portal</h1>
+    </header>
+
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding:8px; margin-bottom:10px; border-radius:4px; background-color:#e6ffe6; color:#006400;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        © 2026 Malawi College of Forestry & Wildlife — Portal by Mark Kanthiti
+    </footer>
+</body>
+</html>
