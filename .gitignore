@@ -8,4 +8,5 @@ db.sqlite3
 staticfiles/
 *.log
 .DS_Store
-Thumbs.db
+Thumbs.db__pycache__/ 
+*.pyc 
