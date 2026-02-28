@@ -1,6 +1,6 @@
 """
 Django settings for college_site_new project.
-Production-ready configuration for Render deployment.
+Production-ready configuration for local and Render deployment.
 """
 
 from pathlib import Path
@@ -13,8 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # =====================================================
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "CHANGE_THIS_TO_A_STRONG_SECRET_KEY")
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-change-this-to-a-strong-secret-key"
+)
 
+# 🔹 Set to True only for development
 DEBUG = False
 
 ALLOWED_HOSTS = [
@@ -91,7 +95,8 @@ WSGI_APPLICATION = "college_site_new.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="sqlite:///" + str(BASE_DIR / "db.sqlite3")
+        default="sqlite:///" + str(BASE_DIR / "db.sqlite3"),
+        conn_max_age=600,
     )
 }
 
@@ -100,10 +105,18 @@ DATABASES = {
 # =====================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 # =====================================================

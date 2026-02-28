@@ -1,0 +1,15 @@
+{% load static %}
+{% extends "admin/base.html" %}
+
+{% block title %}MCFW Portal Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name" class="fw-bold text-success d-flex align-items-center">
+    <a href="{% url 'admin:index' %}" class="text-decoration-none text-success">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" height="40" class="me-2">
+        MCFW Portal Administration
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

@@ -1,15 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Transcript | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% load static %}
+
+{% block title %}
+Transcript | Malawi College of Forestry & Wildlife Portal
+{% endblock %}
+
 {% block content %}
+
 <div class="row justify-content-center mt-4">
     <div class="col-md-10">
         <div class="card shadow-sm">
+
             <div class="card-header bg-secondary text-white text-center">
                 <img src="{% static 'images/logo.png' %}" alt="College Logo" height="60" class="mb-2">
                 <h4 class="mb-0">Official Academic Transcript</h4>
                 <small>Malawi College of Forestry & Wildlife</small>
             </div>
+
             <div class="card-body">
+
                 <!-- Student Info -->
                 <div class="mb-4">
                     <h5 class="fw-bold">Student Information</h5>
@@ -21,16 +30,18 @@
 
                 <!-- Results Table -->
                 <h5 class="fw-bold">Academic Results</h5>
+
                 {% if results %}
+
                     <table class="table table-bordered table-hover">
                         <thead class="table-secondary">
                             <tr>
-                                <th scope="col">Course Code</th>
-                                <th scope="col">Course Name</th>
-                                <th scope="col">Semester</th>
-                                <th scope="col">Marks (%)</th>
-                                <th scope="col">Grade</th>
-                                <th scope="col">GPA</th>
+                                <th>Course Code</th>
+                                <th>Course Name</th>
+                                <th>Semester</th>
+                                <th>Marks (%)</th>
+                                <th>Grade</th>
+                                <th>GPA</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -46,10 +57,13 @@
                             {% endfor %}
                         </tbody>
                     </table>
+
                 {% else %}
+
                     <div class="alert alert-info text-center">
-                        <i class="bi bi-info-circle"></i> No results available yet.
+                        No results available yet.
                     </div>
+
                 {% endif %}
 
                 <!-- GPA Summary -->
@@ -57,16 +71,24 @@
                     <h5 class="fw-bold">Summary</h5>
                     <p><strong>Cumulative GPA:</strong> {{ cumulative_gpa }}</p>
                 </div>
+
             </div>
+
             <div class="card-footer text-center">
                 <a href="{% url 'export_pdf' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-download"></i> Download Transcript (PDF)
+                    Download Transcript (PDF)
                 </a>
+
                 <div class="mt-3 text-muted">
-                    <small>&copy; {{ now|date:"Y" }} Malawi College of Forestry & Wildlife Portal | Designed by <strong>Mark</strong></small>
+                    <small>
+                        &copy; {{ now|date:"Y" }} Malawi College of Forestry & Wildlife Portal |
+                        Designed by <strong>Mark</strong>
+                    </small>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
 {% endblock %}
