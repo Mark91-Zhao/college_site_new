@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Profile | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-9">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white text-center">
+        <i class="bi bi-person-circle fs-2"></i>
+        <h4 class="mb-0">Student Profile</h4>
+      </div>
+
+      <div class="card-body">
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <dl class="row">
+          <dt class="col-sm-3">Registration Number</dt>
+          <dd class="col-sm-9">{{ student.reg_number }}</dd>
+
+          <dt class="col-sm-3">Full Name</dt>
+          <dd class="col-sm-9">{{ student.user.get_full_name }}</dd>
+
+          <dt class="col-sm-3">Program</dt>
+          <dd class="col-sm-9">{{ student.program }}</dd>
+
+          <dt class="col-sm-3">Year</dt>
+          <dd class="col-sm-9">{{ student.year }}</dd>
+
+          <dt class="col-sm-3">Email</dt>
+          <dd class="col-sm-9">{{ student.user.email }}</dd>
+
+          <dt class="col-sm-3">Phone</dt>
+          <dd class="col-sm-9">{{ student.phone_number }}</dd>
+
+          <dt class="col-sm-3">Cumulative GPA</dt>
+          <dd class="col-sm-9">{{ student.gpa }}</dd>
+
+          <dt class="col-sm-3">Classification</dt>
+          <dd class="col-sm-9">{{ student.gpa_classification }}</dd>
+        </dl>
+
+      </div>
+
+      <div class="card-footer text-center">
+
+        <a href="{% url 'portal:transcript' %}" class="btn btn-outline-primary me-2">
+          <i class="bi bi-download"></i> Download Transcript (PDF)
+        </a>
+
+        <a href="{% url 'portal:student_dashboard' %}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

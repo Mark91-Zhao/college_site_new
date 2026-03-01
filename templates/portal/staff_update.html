@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Update Staff Profile | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+
+        <div class="card shadow-sm">
+
+            <div class="card-header bg-primary text-white text-center">
+                <i class="bi bi-pencil-square fs-2"></i>
+                <h4 class="mb-0">Update Staff Profile</h4>
+            </div>
+
+            <div class="card-body">
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <input type="text"
+                               name="department"
+                               value="{{ staff.department }}"
+                               class="form-control"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <input type="text"
+                               name="role"
+                               value="{{ staff.role }}"
+                               class="form-control"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text"
+                               name="phone_number"
+                               value="{{ staff.phone_number }}"
+                               class="form-control">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+            <div class="card-footer text-center">
+                <a href="{% url 'portal:staff_profile' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Profile
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -91,20 +91,18 @@ class StaffForm(forms.ModelForm):
 
 
 # =====================================================
-# COURSE FORM
+# COURSE FORM  ✅ FIXED
 # =====================================================
 class CourseForm(forms.ModelForm):
 
     class Meta:
         model = Course
-        fields = ["student", "semester", "name", "credit_hours", "marks"]
+        fields = ["name", "code", "credit_hours"]
 
         widgets = {
-            "student": forms.Select(attrs={"class": "form-select"}),
-            "semester": forms.Select(attrs={"class": "form-select"}),
             "name": forms.TextInput(attrs={"class": "form-control"}),
+            "code": forms.TextInput(attrs={"class": "form-control"}),
             "credit_hours": forms.NumberInput(attrs={"class": "form-control"}),
-            "marks": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
 

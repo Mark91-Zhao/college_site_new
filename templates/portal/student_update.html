@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Update Student | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil-square"></i> Update Student
+                </h4>
+            </div>
+
+            <div class="card-body">
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Registration Number</label>
+                        <input type="text" class="form-control"
+                               value="{{ student.reg_number }}" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Program</label>
+                        <input type="text" name="program" class="form-control"
+                               value="{{ student.program }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Year</label>
+                        <input type="number" name="year" class="form-control"
+                               value="{{ student.year }}" required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save Changes
+                        </button>
+
+                        <a href="{% url 'portal:student_list' %}"
+                           class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

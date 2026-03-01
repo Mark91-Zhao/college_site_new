@@ -1,14 +1,25 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-venv/
-.env/
+
+# Environment variables
+.env
+
+# Database (local only)
 db.sqlite3
+
+# Static files (production generated)
 staticfiles/
+
+# Logs
 *.log
+
+# OS files
 .DS_Store
-Thumbs.db__pycache__/ 
-*.pyc 
-__pycache__/ 
-*.pyc 
+Thumbs.db

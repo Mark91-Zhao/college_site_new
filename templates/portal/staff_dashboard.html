@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Staff Dashboard | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+
+    <!-- Profile Card -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-person-badge fs-2"></i>
+                <h5 class="mb-0">My Profile</h5>
+            </div>
+            <div class="card-body">
+
+                <p><strong>{{ request.user.get_full_name }}</strong></p>
+                <p>{{ request.user.username }}</p>
+
+                <a href="{% url 'portal:staff_profile' %}"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye"></i> View Profile
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Result -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-plus-circle fs-2"></i>
+                <h5 class="mb-0">Add Results</h5>
+            </div>
+            <div class="card-body">
+                <p>Enter student academic results.</p>
+
+                <a href="{% url 'portal:add_result' %}"
+                   class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-pencil"></i> Add Result
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Results -->
+    <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+            <div class="card-header bg-secondary text-white">
+                <i class="bi bi-upload fs-2"></i>
+                <h5 class="mb-0">Upload CSV</h5>
+            </div>
+            <div class="card-body">
+                <p>Upload results using CSV file.</p>
+
+                <a href="{% url 'portal:upload_results' %}"
+                   class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-cloud-arrow-up"></i> Upload File
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

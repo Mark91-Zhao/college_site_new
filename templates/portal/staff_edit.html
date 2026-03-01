@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Student | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white text-center">
+                <i class="bi bi-pencil-square fs-2"></i>
+                <h4 class="mb-0">Edit Student Details</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" name="name" id="name" class="form-control" value="{{ student.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reg_number" class="form-label">Registration Number</label>
+                        <input type="text" name="reg_number" id="reg_number" class="form-control" value="{{ student.reg_number }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="program" class="form-label">Program</label>
+                        <input type="text" name="program" id="program" class="form-control" value="{{ student.program }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="year" class="form-label">Year of Study</label>
+                        <input type="number" name="year" id="year" class="form-control" value="{{ student.year }}" min="1" max="5" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" name="email" id="email" class="form-control" value="{{ student.email }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number</label>
+                        <input type="text" name="phone_number" id="phone_number" class="form-control" value="{{ student.phone_number }}" required>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small><a href="{% url 'portal:student_dashboard' %}">Back to Dashboard</a></small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

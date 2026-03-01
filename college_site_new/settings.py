@@ -1,11 +1,10 @@
 """
 Django settings for college_site_new project.
-Production-ready configuration for local and Render deployment.
+Stable local development configuration.
 """
 
 from pathlib import Path
 import os
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,19 +12,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # =====================================================
 
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "django-insecure-change-this-to-a-strong-secret-key"
-)
+SECRET_KEY = "django-insecure-very-secret-key-change-later"
 
-# 🔹 Set to True only for development
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    ".onrender.com",
-]
+ALLOWED_HOSTS = []
 
 # =====================================================
 # APPLICATIONS
@@ -39,7 +30,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "portal",
-    "whitenoise.runserver_nostatic",
 ]
 
 # =====================================================
@@ -48,7 +38,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -90,14 +79,14 @@ TEMPLATES = [
 WSGI_APPLICATION = "college_site_new.wsgi.application"
 
 # =====================================================
-# DATABASE
+# DATABASE (LOCAL SQLITE)
 # =====================================================
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///" + str(BASE_DIR / "db.sqlite3"),
-        conn_max_age=600,
-    )
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
 }
 
 # =====================================================
@@ -105,18 +94,10 @@ DATABASES = {
 # =====================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # =====================================================
@@ -124,7 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # =====================================================
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "Africa/Blantyre"
 
 USE_I18N = True
@@ -135,10 +115,8 @@ USE_TZ = True
 # =====================================================
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "portal" / "static"]
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # =====================================================
 # MEDIA FILES
 # =====================================================
@@ -151,8 +129,8 @@ MEDIA_ROOT = BASE_DIR / "media"
 # =====================================================
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "portal:home"
-LOGOUT_REDIRECT_URL = "portal:home"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 # =====================================================
 # DEFAULT AUTO FIELD

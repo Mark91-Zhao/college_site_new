@@ -1,39 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Home | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% load static %}
+
+{% block title %}
+Home | Malawi College of Forestry & Wildlife Portal
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-10 text-center">
+
         <!-- Logo -->
-        <img src="{% static 'images/logo.png' %}" alt="College Logo" height="120" class="mb-4">
+        <img src="{% static 'images/logo.png' %}" 
+             alt="College Logo" 
+             height="120" 
+             class="mb-4">
 
         <!-- Welcome Message -->
-        <h2 class="fw-bold text-success">Welcome to the Malawi College of Forestry & Wildlife Portal</h2>
+        <h2 class="fw-bold text-success">
+            Welcome to the Malawi College of Forestry & Wildlife Portal
+        </h2>
+
         <p class="lead text-muted mt-3">
             This portal provides students and staff with secure access to academic records, results, transcripts, and institutional resources.
         </p>
 
         <!-- Quick Links -->
         <div class="mt-4">
-            <a href="{% url 'student_login' %}" class="btn btn-outline-success btn-lg me-3">
-                <i class="bi bi-person"></i> Student Login
+            <a href="{% url 'login' %}" 
+               class="btn btn-outline-success btn-lg me-3">
+                Student Login
             </a>
-            <a href="{% url 'staff_login' %}" class="btn btn-outline-primary btn-lg me-3">
-                <i class="bi bi-person-badge"></i> Staff Login
+
+            <a href="{% url 'login' %}" 
+               class="btn btn-outline-primary btn-lg me-3">
+                Staff Login
             </a>
-            <a href="/admin/" class="btn btn-outline-danger btn-lg">
-                <i class="bi bi-shield-lock"></i> Admin Login
+
+            <a href="/admin/" 
+               class="btn btn-outline-danger btn-lg">
+                Admin Login
             </a>
         </div>
 
         <!-- Info Section -->
         <div class="mt-5">
-            <h5 class="fw-bold"><i class="bi bi-info-circle"></i> About the Portal</h5>
+            <h5 class="fw-bold">About the Portal</h5>
             <p class="text-muted">
                 Designed to ensure transparency, accountability, and efficiency in academic workflows. 
                 Students can register, view results, and download transcripts, while staff can manage courses, semesters, and records.
                 Administrators have secure access to manage institutional settings and oversee compliance.
             </p>
         </div>
+
     </div>
 </div>
 {% endblock %}
