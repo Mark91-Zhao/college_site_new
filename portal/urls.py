@@ -1,7 +1,7 @@
 """
 portal/urls.py
 Complete URL Configuration
-Now Including Course Management
+Using Django Built-in Authentication
 """
 
 from django.urls import path
@@ -12,23 +12,26 @@ app_name = "portal"
 urlpatterns = [
 
     # =====================================================
-    # AUTHENTICATION
+    # HOME
     # =====================================================
     path("", views.home, name="home"),
-    path("login/", views.login_view, name="login"),
-    path("logout/", views.logout_view, name="logout"),
+
+    # =====================================================
+    # STUDENT SELF REGISTRATION
+    # =====================================================
+    path("register/", views.student_register, name="register"),
+
+    # =====================================================
+    # DASHBOARDS
+    # =====================================================
+    path("student/dashboard/", views.student_dashboard, name="student_dashboard"),
+    path("staff/dashboard/", views.staff_dashboard, name="staff_dashboard"),
 
     # =====================================================
     # USER PROFILES
     # =====================================================
     path("student/profile/", views.student_profile, name="student_profile"),
     path("staff/profile/", views.staff_profile, name="staff_profile"),
-
-    # =====================================================
-    # STUDENT AUTH ROUTES
-    # =====================================================
-    path("student/register/", views.student_register, name="student_register"),
-    path("student/dashboard/", views.student_dashboard, name="student_dashboard"),
 
     # =====================================================
     # STUDENT MANAGEMENT (STAFF ONLY)
@@ -48,12 +51,6 @@ urlpatterns = [
     path("courses/<int:pk>/delete/", views.course_delete, name="course_delete"),
 
     # =====================================================
-    # STAFF ROUTES
-    # =====================================================
-    path("staff/dashboard/", views.staff_dashboard, name="staff_dashboard"),
-    path("staff/profile/update/<int:pk>/", views.staff_update, name="staff_update"),
-
-    # =====================================================
     # ACADEMIC OPERATIONS
     # =====================================================
     path("staff/add-result/", views.add_result, name="add_result"),
@@ -65,5 +62,4 @@ urlpatterns = [
     # =====================================================
     path("transcript/", views.transcript, name="transcript"),
     path("transcript/pdf/", views.export_transcript_pdf, name="export_transcript_pdf"),
-
 ]

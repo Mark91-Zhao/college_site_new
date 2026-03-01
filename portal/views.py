@@ -161,63 +161,6 @@ def student_register(request):
 
     return render(request, "portal/student_register.html")
 
-
-# =====================================================
-# LOGIN
-# =====================================================
-
-def login_view(request):
-
-    if request.user.is_authenticated:
-
-        if request.user.is_superuser:
-            return redirect("admin:index")
-
-        if hasattr(request.user, "staff"):
-            return redirect("portal:staff_dashboard")
-
-        if hasattr(request.user, "student"):
-            return redirect("portal:student_dashboard")
-
-        return redirect("portal:home")
-
-    if request.method == "POST":
-
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "").strip()
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is None:
-            messages.error(request, "Invalid username or password.")
-            return redirect("portal:login")
-
-        login(request, user)
-
-        if user.is_superuser:
-            return redirect("admin:index")
-
-        if hasattr(user, "staff"):
-            return redirect("portal:staff_dashboard")
-
-        if hasattr(user, "student"):
-            return redirect("portal:student_dashboard")
-
-        return redirect("portal:home")
-
-    return render(request, "portal/login.html")
-#======================================================
-# LOGOUT
-# =====================================================
-
-@login_required
-@require_POST
-def logout_view(request):
-    logout(request)
-    messages.success(request, "Logged out successfully.")
-    return redirect("portal:home")
-
-
 # =====================================================
 # STUDENT DASHBOARD
 # =====================================================
