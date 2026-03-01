@@ -4,10 +4,12 @@
 {% block title %}Login - MCFW Portal{% endblock %}
 
 {% block content %}
+
 <div class="row justify-content-center mt-5">
     <div class="col-md-5">
 
         <div class="card shadow-sm">
+
             <div class="card-body text-center">
 
                 <!-- Logo -->
@@ -25,7 +27,7 @@
                 {% endif %}
 
                 <!-- Login Form -->
-                <form method="post" action="{% url 'login' %}">
+                <form method="post" action="/accounts/login/">
                     {% csrf_token %}
 
                     <div class="mb-3 text-start">
@@ -43,6 +45,7 @@
                     <button type="submit" class="btn btn-success w-100">
                         Login
                     </button>
+
                 </form>
 
                 <!-- Links -->
@@ -50,11 +53,11 @@
 
                     <p class="mb-1">
                         Don't have an account?
-                        <a href="{% url 'register' %}">Register here</a>
+                        <a href="/register/">Register here</a>
                     </p>
 
                     <p class="mb-0">
-                        <a href="{% url 'password_reset' %}">
+                        <a href="/accounts/password_reset/">
                             Forgot your password?
                         </a>
                     </p>
@@ -74,4 +77,5 @@
 
     </div>
 </div>
+
 {% endblock %}

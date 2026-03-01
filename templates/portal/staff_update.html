@@ -1,9 +1,10 @@
-{% extends "base.html" %}
+{% extends "portal/base.html" %}
 {% load static %}
 
 {% block title %}Update Staff Profile | Malawi College of Forestry & Wildlife Portal{% endblock %}
 
 {% block content %}
+
 <div class="row justify-content-center mt-4">
     <div class="col-md-8 col-lg-6">
 
@@ -28,6 +29,34 @@
                 <form method="post">
                     {% csrf_token %}
 
+                    <!-- First Name -->
+                    <div class="mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text"
+                               name="first_name"
+                               value="{{ staff.user.first_name }}"
+                               class="form-control">
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text"
+                               name="last_name"
+                               value="{{ staff.user.last_name }}"
+                               class="form-control">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email"
+                               name="email"
+                               value="{{ staff.user.email }}"
+                               class="form-control">
+                    </div>
+
+                    <!-- Department -->
                     <div class="mb-3">
                         <label class="form-label">Department</label>
                         <input type="text"
@@ -37,6 +66,7 @@
                                required>
                     </div>
 
+                    <!-- Role -->
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <input type="text"
@@ -46,6 +76,7 @@
                                required>
                     </div>
 
+                    <!-- Phone Number -->
                     <div class="mb-3">
                         <label class="form-label">Phone Number</label>
                         <input type="text"
@@ -74,4 +105,5 @@
 
     </div>
 </div>
+
 {% endblock %}

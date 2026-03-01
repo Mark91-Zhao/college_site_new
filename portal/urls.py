@@ -1,6 +1,6 @@
 """
 portal/urls.py
-Complete URL Configuration
+Clean Configuration
 Using Django Built-in Authentication
 """
 
@@ -33,6 +33,13 @@ urlpatterns = [
     path("student/profile/", views.student_profile, name="student_profile"),
     path("staff/profile/", views.staff_profile, name="staff_profile"),
 
+    # STAFF PROFILE UPDATE
+    path(
+        "staff/profile/update/<int:pk>/",
+        views.staff_update,
+        name="staff_update"
+    ),
+
     # =====================================================
     # STUDENT MANAGEMENT (STAFF ONLY)
     # =====================================================
@@ -62,4 +69,9 @@ urlpatterns = [
     # =====================================================
     path("transcript/", views.transcript, name="transcript"),
     path("transcript/pdf/", views.export_transcript_pdf, name="export_transcript_pdf"),
+
+# =====================================================
+# SMART DASHBOARD
+# =====================================================
+path("dashboard/", views.smart_dashboard, name="dashboard"),
 ]

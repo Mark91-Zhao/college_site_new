@@ -104,12 +104,11 @@ def home(request):
 # =====================================================
 # STUDENT REGISTRATION
 # =====================================================
-
 def student_register(request):
 
     if request.method == "POST":
 
-        reg_number = request.POST.get("reg_number", "").strip()
+        reg_number = request.POST.get("reg_number", "").strip().upper()
         full_name = request.POST.get("full_name", "").strip()
         program = request.POST.get("program", "").strip()
         year = request.POST.get("year", "").strip()
@@ -118,49 +117,41 @@ def student_register(request):
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
+        # validation
         if not all([reg_number, full_name, program, year, email, password]):
             messages.error(request, "All fields are required.")
-            return redirect("portal:student_register")
+            return redirect("portal:register")
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return redirect("portal:student_register")
+            return redirect("portal:register")
 
-        if User.objects.filter(username=reg_number).exists():
-            messages.error(request, "Registration number already exists.")
-            return redirect("portal:student_register")
+        return redirect("portal:home")
 
-        try:
-            year = int(year)
-        except ValueError:
-            messages.error(request, "Year must be a valid number.")
-            return redirect("portal:student_register")
+    return render(request, "registration/register.html")
 
-        first_name, *last = full_name.split(" ")
-        last_name = " ".join(last)
+# =====================================================
+# SMART DASHBOARD REDIRECT
+# =====================================================
 
-        with transaction.atomic():
-            user = User.objects.create_user(
-                username=reg_number,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                email=email
-            )
+@login_required
+def smart_dashboard(request):
+    """
+    Redirect users automatically based on role.
+    Students → Student Dashboard
+    Staff → Staff Dashboard
+    """
 
-            Student.objects.create(
-                user=user,
-                reg_number=reg_number,
-                program=program,
-                year=year,
-                phone_number=phone_number
-            )
+    # Staff users
+    if hasattr(request.user, "staff") or request.user.is_superuser:
+        return redirect("portal:staff_dashboard")
 
-        messages.success(request, "Registration successful. Please login.")
-        return redirect("portal:login")
+    # Student users
+    if hasattr(request.user, "student"):
+        return redirect("portal:student_dashboard")
 
-    return render(request, "portal/student_register.html")
-
+    # Default fallback
+    return redirect("portal:home")
 # =====================================================
 # STUDENT DASHBOARD
 # =====================================================
@@ -592,12 +583,15 @@ def student_profile(request):
 @login_required
 def staff_profile(request):
 
+    # Check if this user has a related Staff object
     if not hasattr(request.user, "staff"):
-        messages.error(request, "Access denied.")
+        messages.error(request, "Staff profile not found.")
         return redirect("portal:home")
 
+    staff = request.user.staff
+
     return render(request, "portal/staff_profile.html", {
-        "staff": request.user.staff
+        "staff": staff
     })
 # =====================================================
 # STAFF PROFILE UPDATE
@@ -608,17 +602,23 @@ def staff_update(request, pk):
 
     staff = get_object_or_404(Staff, pk=pk)
 
-    # Ensure only the owner can edit
+    # Security check
     if request.user != staff.user:
         messages.error(request, "Access denied.")
         return redirect("portal:home")
 
     if request.method == "POST":
 
-        staff.department = request.POST.get("department", "").strip()
-        staff.role = request.POST.get("role", "").strip()
-        staff.phone_number = request.POST.get("phone_number", "").strip()
+        # Update User model
+        staff.user.first_name = request.POST.get("first_name")
+        staff.user.last_name = request.POST.get("last_name")
+        staff.user.email = request.POST.get("email")
+        staff.user.save()
 
+        # Update Staff model
+        staff.department = request.POST.get("department")
+        staff.role = request.POST.get("role")
+        staff.phone_number = request.POST.get("phone_number")
         staff.save()
 
         messages.success(request, "Profile updated successfully.")
@@ -626,22 +626,6 @@ def staff_update(request, pk):
 
     return render(request, "portal/staff_update.html", {
         "staff": staff
-    })
-# =====================================================
-# STUDENT LIST (STAFF ONLY)
-# =====================================================
-@login_required
-def student_list(request):
-
-    # Only staff, superuser, or staff profile
-    if not (hasattr(request.user, "staff") or request.user.is_superuser):
-        messages.error(request, "Access denied.")
-        return redirect("portal:home")
-
-    students = Student.objects.select_related("user").all()
-
-    return render(request, "portal/student_list.html", {
-        "students": students
     })
 # =====================================================
 # STUDENT CREATE (STAFF ONLY)
@@ -983,4 +967,31 @@ def course_delete(request, pk):
 
     return render(request, "portal/course_confirm_delete.html", {
         "course": course
+    })
+
+# =====================================================
+# STUDENT LIST (STAFF ONLY)
+# =====================================================
+@login_required
+def student_list(request):
+    """
+    Display all students in a paginated list.
+    Only accessible to staff or superusers.
+    """
+
+    # Access control
+    if not (hasattr(request.user, "staff") or request.user.is_superuser):
+        messages.error(request, "Access denied.")
+        return redirect("portal:home")
+
+    # Get all students, newest first
+    students_queryset = Student.objects.select_related("user").order_by("-id")
+
+    # Paginate - 10 per page
+    paginator = Paginator(students_queryset, 10)
+    page_number = request.GET.get("page")
+    students = paginator.get_page(page_number)
+
+    return render(request, "portal/student_list.html", {
+        "students": students
     })
