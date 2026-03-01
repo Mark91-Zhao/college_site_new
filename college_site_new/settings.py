@@ -1,6 +1,6 @@
 """
 Django settings for college_site_new project.
-Stable local development configuration.
+Production-ready configuration for Render.
 """
 
 from pathlib import Path
@@ -16,7 +16,12 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "college-site-new.onrender.com").split(",")
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
+    "college-site-new.onrender.com,localhost,127.0.0.1"
+).split(",")
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # =====================================================
 # APPLICATIONS
@@ -38,6 +43,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Required for static files on Render
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -79,7 +85,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "college_site_new.wsgi.application"
 
 # =====================================================
-# DATABASE (LOCAL SQLITE)
+# DATABASE (SQLite - simple setup)
 # =====================================================
 
 DATABASES = {
@@ -115,7 +121,14 @@ USE_TZ = True
 # =====================================================
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "portal" / "static"]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "portal" / "static",
+]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # =====================================================
 # MEDIA FILES
