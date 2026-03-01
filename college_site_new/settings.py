@@ -1,20 +1,23 @@
 """
 Django settings for college_site_new project.
-Production-ready configuration for Render.
+Production-ready configuration for Render + PostgreSQL.
 """
 
 from pathlib import Path
 import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")  # fallback for dev
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
+
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
-    "college-site-new.onrender.com,localhost,127.0.0.1"
+    "college-site-new-1.onrender.com,localhost,127.0.0.1"
 ).split(",")
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # APPLICATIONS
@@ -63,16 +66,13 @@ TEMPLATES = [
 # WSGI
 WSGI_APPLICATION = "college_site_new.wsgi.application"
 
-# DATABASE (Force Postgres everywhere)
+# DATABASE (PostgreSQL via DATABASE_URL from Render)
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "college_site_new",
-        "USER": "college_user",
-        "PASSWORD": "22In1991#*#*",  # replace with your actual password
-        "HOST": "localhost",
-        "PORT": "5432",
-    }
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
 
 # PASSWORD VALIDATION
@@ -92,7 +92,7 @@ USE_TZ = True
 # STATIC FILES
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "portal" / "static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # MEDIA FILES
