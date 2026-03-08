@@ -5,14 +5,14 @@ cffi==2.0.0
 charset-normalizer==3.4.4
 click==8.3.1
 colorama==0.4.6
-crispy-bootstrap5==0.7
+crispy-bootstrap5==2024.2
 cryptography==46.0.5
 defusedxml==0.7.1
 diff-match-patch==20241021
 dj-database-url==3.1.2
 Django==5.0.2
-django-admin-interface==0.26.0
-django-allauth==0.61.1
+django-admin-interface>=0.28.0
+django-allauth>=0.62.0
 django-colorfield==0.14.0
 django-crispy-forms==2.1
 django-import-export==4.4.0
