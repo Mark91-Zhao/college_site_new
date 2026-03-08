@@ -1,9 +1,8 @@
 from django.contrib import admin
 from .models import Student, Staff, Course, Semester, Result
 
-
 # =====================================================
-# STUDENT ADMIN (IMPROVED)
+# STUDENT ADMIN (FIXED)
 # =====================================================
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
@@ -13,6 +12,9 @@ class StudentAdmin(admin.ModelAdmin):
         "user",
         "program",
         "year",
+        "gpa_display",
+        "classification_display",
+        "withdrawn_display",
     )
 
     search_fields = (
@@ -30,8 +32,19 @@ class StudentAdmin(admin.ModelAdmin):
 
     ordering = ("reg_number",)
 
-    readonly_fields = ("gpa", "gpa_classification", "is_withdrawn")
+    # ---- Safe display methods ----
 
+    def gpa_display(self, obj):
+        return obj.gpa
+    gpa_display.short_description = "GPA"
+
+    def classification_display(self, obj):
+        return obj.gpa_classification
+    classification_display.short_description = "Classification"
+
+    def withdrawn_display(self, obj):
+        return obj.is_withdrawn
+    withdrawn_display.short_description = "Withdrawn"
 
 # =====================================================
 # STAFF ADMIN (IMPROVED)
