@@ -13,9 +13,6 @@ class StudentAdmin(admin.ModelAdmin):
         "user",
         "program",
         "year",
-        "gpa",
-        "gpa_classification",
-        "is_withdrawn",
     )
 
     search_fields = (
