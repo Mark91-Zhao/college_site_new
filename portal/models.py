@@ -257,8 +257,9 @@ class Result(TimeStampedModel):
 @receiver(post_save, sender=User)
 def create_student_profile(sender, instance, created, **kwargs):
 
-    if created:
-        if not instance.is_staff and not instance.is_superuser:
+    if created and not instance.is_staff and not instance.is_superuser:
+
+        if not Student.objects.filter(user=instance).exists():
 
             Student.objects.create(
                 user=instance,
