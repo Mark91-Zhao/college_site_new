@@ -1,6 +1,6 @@
 """
-Django settings for college_site_new.
-Production-ready for Render + local development.
+Django settings for college_site_new project.
+Safe configuration for Render + local development.
 """
 
 from pathlib import Path
@@ -9,35 +9,31 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# -------------------------------------------------
-# SECURITY
-# -------------------------------------------------
-
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "django-insecure-change-this-in-production"
-)
-
-# DEBUG: True locally, False on Render
+# ------------------------------------------------------------------
+# SECURITY SETTINGS
+# ------------------------------------------------------------------
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# ALLOWED HOSTS
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    "college-site-new-1.onrender.com,localhost,127.0.0.1"
-).split(",")
-
-# CSRF for Render (IMPORTANT)
-CSRF_TRUSTED_ORIGINS = [
-    "https://college-site-new-1.onrender.com"
+# Allowed hosts for Render deployment + local testing
+ALLOWED_HOSTS = [
+    "college-site-new-1.onrender.com",  # your Render URL
+    "www.college-site-new-1.onrender.com",  # optional
+    "localhost",
+    "127.0.0.1",
 ]
 
+# CSRF trusted origins for login/forms
+CSRF_TRUSTED_ORIGINS = [
+    "https://college-site-new-1.onrender.com",
+]
+
+# Handle SSL headers from proxies like Render
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# -------------------------------------------------
-# APPLICATIONS
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
+# INSTALLED APPS
+# ------------------------------------------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -45,13 +41,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "portal",
+    "portal",  # your app
 ]
 
-# -------------------------------------------------
+# ------------------------------------------------------------------
 # MIDDLEWARE
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -63,11 +58,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# ------------------------------------------------------------------
+# URLS & TEMPLATES
+# ------------------------------------------------------------------
 ROOT_URLCONF = "college_site_new.urls"
-
-# -------------------------------------------------
-# TEMPLATES
-# -------------------------------------------------
 
 TEMPLATES = [
     {
@@ -87,11 +81,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "college_site_new.wsgi.application"
 
-# -------------------------------------------------
+# ------------------------------------------------------------------
 # DATABASE
-# -------------------------------------------------
-
-# Render PostgreSQL if DATABASE_URL exists
+# ------------------------------------------------------------------
+# Use Render PostgreSQL if DATABASE_URL exists, else fallback to local SQLite
 if os.environ.get("DATABASE_URL"):
     DATABASES = {
         "default": dj_database_url.config(
@@ -100,7 +93,6 @@ if os.environ.get("DATABASE_URL"):
         )
     }
 else:
-    # Local SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -108,10 +100,9 @@ else:
         }
     }
 
-# -------------------------------------------------
-# PASSWORD VALIDATION
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
+# PASSWORD VALIDATORS
+# ------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -119,45 +110,36 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# -------------------------------------------------
+# ------------------------------------------------------------------
 # INTERNATIONALIZATION
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Blantyre"
 USE_I18N = True
 USE_TZ = True
 
-# -------------------------------------------------
-# STATIC FILES (WhiteNoise)
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
+# STATIC FILES (CSS, JS, Images)
+# ------------------------------------------------------------------
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 STATICFILES_DIRS = [BASE_DIR / "portal" / "static"]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-STATICFILES_STORAGE = (
-    "whitenoise.storage.CompressedManifestStaticFilesStorage"
-)
-
-# -------------------------------------------------
-# MEDIA FILES
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
+# MEDIA FILES (Uploads)
+# ------------------------------------------------------------------
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# -------------------------------------------------
-# AUTH SETTINGS
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
+# LOGIN / LOGOUT
+# ------------------------------------------------------------------
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
 
-# -------------------------------------------------
+# ------------------------------------------------------------------
 # DEFAULT AUTO FIELD
-# -------------------------------------------------
-
+# ------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
