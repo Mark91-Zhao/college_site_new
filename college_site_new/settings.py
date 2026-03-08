@@ -17,17 +17,14 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # Allowed hosts for Render deployment + local testing
 ALLOWED_HOSTS = [
-    "college-site-new-1.onrender.com",  # your Render URL
-    "www.college-site-new-1.onrender.com",  # optional
+    "college-site-new.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
-
 # CSRF trusted origins for login/forms
 CSRF_TRUSTED_ORIGINS = [
-    "https://college-site-new-1.onrender.com",
+    "https://college-site-new.onrender.com",
 ]
-
 # Handle SSL headers from proxies like Render
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
