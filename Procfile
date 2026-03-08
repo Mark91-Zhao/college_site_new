@@ -1,1 +1,1 @@
-web: gunicorn college_site_new.wsgi:application 
+web: gunicorn college_site_new.wsgi:application --bind 0.0.0.0:$PORT

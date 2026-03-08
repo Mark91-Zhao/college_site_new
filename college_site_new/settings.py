@@ -1,6 +1,6 @@
 """
-Django settings for college_site_new project.
-Safe configuration for Render + local development.
+Django settings for college_site_new.
+Production-ready for Render + local development.
 """
 
 from pathlib import Path
@@ -9,16 +9,34 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-secret-key")
+# -------------------------------------------------
+# SECURITY
+# -------------------------------------------------
+
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-change-this-in-production"
+)
+
+# DEBUG: True locally, False on Render
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-
+# ALLOWED HOSTS
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
     "college-site-new-1.onrender.com,localhost,127.0.0.1"
 ).split(",")
 
+# CSRF for Render (IMPORTANT)
+CSRF_TRUSTED_ORIGINS = [
+    "https://college-site-new-1.onrender.com"
+]
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# -------------------------------------------------
+# APPLICATIONS
+# -------------------------------------------------
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -29,6 +47,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "portal",
 ]
+
+# -------------------------------------------------
+# MIDDLEWARE
+# -------------------------------------------------
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -42,6 +64,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "college_site_new.urls"
+
+# -------------------------------------------------
+# TEMPLATES
+# -------------------------------------------------
 
 TEMPLATES = [
     {
@@ -61,7 +87,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "college_site_new.wsgi.application"
 
-# Database (Render PostgreSQL + local SQLite fallback)
+# -------------------------------------------------
+# DATABASE
+# -------------------------------------------------
+
+# Render PostgreSQL if DATABASE_URL exists
 if os.environ.get("DATABASE_URL"):
     DATABASES = {
         "default": dj_database_url.config(
@@ -70,12 +100,17 @@ if os.environ.get("DATABASE_URL"):
         )
     }
 else:
+    # Local SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+# -------------------------------------------------
+# PASSWORD VALIDATION
+# -------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -84,21 +119,45 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# -------------------------------------------------
+# INTERNATIONALIZATION
+# -------------------------------------------------
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Blantyre"
 USE_I18N = True
 USE_TZ = True
 
+# -------------------------------------------------
+# STATIC FILES (WhiteNoise)
+# -------------------------------------------------
+
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_DIRS = [BASE_DIR / "portal" / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
+
+# -------------------------------------------------
+# MEDIA FILES
+# -------------------------------------------------
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# -------------------------------------------------
+# AUTH SETTINGS
+# -------------------------------------------------
+
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
+
+# -------------------------------------------------
+# DEFAULT AUTO FIELD
+# -------------------------------------------------
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
