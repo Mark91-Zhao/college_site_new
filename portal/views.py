@@ -107,7 +107,6 @@ def home(request):
 def student_register(request):
 
     if request.method == "POST":
-
         reg_number = request.POST.get("reg_number", "").strip().upper()
         full_name = request.POST.get("full_name", "").strip()
         program = request.POST.get("program", "").strip()
@@ -117,9 +116,7 @@ def student_register(request):
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
-        # ===============================
-        # VALIDATION
-        # ===============================
+        # Validation
         if not all([reg_number, full_name, program, year, email, password]):
             messages.error(request, "All fields are required.")
             return redirect("portal:register")
@@ -138,16 +135,14 @@ def student_register(request):
             messages.error(request, "Year must be a valid number.")
             return redirect("portal:register")
 
-        # ===============================
-        # SPLIT NAME
-        # ===============================
+        # Split name
         names = full_name.split()
         first_name = names[0]
         last_name = " ".join(names[1:]) if len(names) > 1 else ""
 
         try:
             with transaction.atomic():
-                # CREATE USER
+                # Create User
                 user = User.objects.create_user(
                     username=reg_number,
                     email=email,
@@ -156,7 +151,7 @@ def student_register(request):
                     last_name=last_name
                 )
 
-                # CREATE STUDENT PROFILE EXPLICITLY
+                # Create Student profile explicitly
                 Student.objects.create(
                     user=user,
                     reg_number=reg_number,
@@ -169,11 +164,12 @@ def student_register(request):
             return redirect("login")
 
         except Exception as e:
-            print(e)
-            messages.error(request, "Error creating account.")
+            print("Registration error:", e)
+            messages.error(request, "Error creating account. Please contact admin.")
             return redirect("portal:register")
 
     return render(request, "registration/register.html")
+
 
 # =====================================================
 # STUDENT DASHBOARD
