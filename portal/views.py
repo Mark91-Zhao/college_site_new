@@ -135,14 +135,13 @@ def student_register(request):
             messages.error(request, "Year must be a valid number.")
             return redirect("portal:register")
 
-        # Split name
         names = full_name.split()
         first_name = names[0]
         last_name = " ".join(names[1:]) if len(names) > 1 else ""
 
         try:
             with transaction.atomic():
-                # Create User
+
                 user = User.objects.create_user(
                     username=reg_number,
                     email=email,
@@ -151,14 +150,13 @@ def student_register(request):
                     last_name=last_name
                 )
 
-                # Create Student profile explicitly
-                Student.objects.create(
-                    user=user,
-                    reg_number=reg_number,
-                    program=program,
-                    year=year,
-                    phone_number=phone_number
-                )
+                # Update auto-created student profile
+                student = user.student
+                student.reg_number = reg_number
+                student.program = program
+                student.year = year
+                student.phone_number = phone_number
+                student.save()
 
             messages.success(request, "Registration successful. Please login.")
             return redirect("login")
@@ -169,7 +167,6 @@ def student_register(request):
             return redirect("portal:register")
 
     return render(request, "registration/register.html")
-
 
 # =====================================================
 # STUDENT DASHBOARD
