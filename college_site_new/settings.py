@@ -13,7 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # -------------------------------------------------
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-local-dev-key-123456"
+)
 
 # IMPORTANT:
 # On Render set DEBUG=False
@@ -87,16 +90,28 @@ TEMPLATES = [
 WSGI_APPLICATION = "college_site_new.wsgi.application"
 
 # -------------------------------------------------
-# DATABASE (POSTGRES ONLY ON RENDER)
+# DATABASE CONFIGURATION (LOCAL + RENDER)
 # -------------------------------------------------
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+if os.environ.get("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ.get("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "college_site",
+            "USER": "postgres",
+            "PASSWORD": "22In1991",
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
+    }
 
 # -------------------------------------------------
 # PASSWORD VALIDATION

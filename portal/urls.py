@@ -22,6 +22,11 @@ urlpatterns = [
     path("register/", views.student_register, name="register"),
 
     # =====================================================
+    # SMART DASHBOARD REDIRECT
+    # =====================================================
+    path("dashboard/", views.dashboard_redirect, name="dashboard"),
+
+    # =====================================================
     # DASHBOARDS
     # =====================================================
     path("student/dashboard/", views.student_dashboard, name="student_dashboard"),
@@ -69,9 +74,4 @@ urlpatterns = [
     # =====================================================
     path("transcript/", views.transcript, name="transcript"),
     path("transcript/pdf/", views.export_transcript_pdf, name="export_transcript_pdf"),
-
-# =====================================================
-# SMART DASHBOARD
-# =====================================================
-path("dashboard/", views.smart_dashboard, name="dashboard"),
 ]
