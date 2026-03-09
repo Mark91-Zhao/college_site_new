@@ -154,7 +154,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # -------------------------------------------------
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "portal:dashboard"
+LOGIN_REDIRECT_URL = "/dashboard-redirect/"
 LOGOUT_REDIRECT_URL = "portal:home"
 
 # -------------------------------------------------
