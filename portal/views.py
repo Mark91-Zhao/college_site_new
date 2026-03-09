@@ -146,9 +146,7 @@ def student_register(request):
         last_name = " ".join(names[1:]) if len(names) > 1 else ""
 
         try:
-
             with transaction.atomic():
-
                 # CREATE USER
                 user = User.objects.create_user(
                     username=reg_number,
@@ -158,12 +156,14 @@ def student_register(request):
                     last_name=last_name
                 )
 
-                # UPDATE AUTO-CREATED STUDENT PROFILE
-                student = user.student
-                student.program = program
-                student.year = year
-                student.phone_number = phone_number
-                student.save()
+                # CREATE STUDENT PROFILE EXPLICITLY
+                Student.objects.create(
+                    user=user,
+                    reg_number=reg_number,
+                    program=program,
+                    year=year,
+                    phone_number=phone_number
+                )
 
             messages.success(request, "Registration successful. Please login.")
             return redirect("login")
@@ -174,6 +174,7 @@ def student_register(request):
             return redirect("portal:register")
 
     return render(request, "registration/register.html")
+
 # =====================================================
 # STUDENT DASHBOARD
 # =====================================================
