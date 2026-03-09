@@ -27,11 +27,13 @@ ALLOWED_HOSTS = [
     "college-site-new.onrender.com",
     "localhost",
     "127.0.0.1",
+    # Add custom domain here if you use one
 ]
 
 # CSRF for HTTPS on Render
 CSRF_TRUSTED_ORIGINS = [
     "https://college-site-new.onrender.com",
+    "http://college-site-new.onrender.com",  # allow http for testing
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -154,7 +156,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # -------------------------------------------------
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/dashboard-redirect/"
+LOGIN_REDIRECT_URL = "portal:dashboard"
 LOGOUT_REDIRECT_URL = "portal:home"
 
 # -------------------------------------------------
@@ -167,5 +169,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # SECURITY COOKIES (Production Safe)
 # -------------------------------------------------
 
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+# Require HTTPS in production, but allow testing flexibility
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "True") == "True"
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "True") == "True"
