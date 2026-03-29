@@ -10,7 +10,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-
 # =====================================================
 # ABSTRACT BASE MODEL
 # =====================================================
@@ -68,7 +67,6 @@ class Student(TimeStampedModel):
 
     # =================================================
     # GPA CLASSIFICATION (YOUR ORIGINAL SCALE)
-    # Includes "Average"
     # =================================================
     @property
     def gpa_classification(self):
@@ -190,7 +188,7 @@ class Result(TimeStampedModel):
         return f"{self.student.reg_number} - {self.course.code}"
 
     # =================================================
-    # GRADE POINT SYSTEM (SAFE)
+    # GRADE POINT SYSTEM
     # =================================================
     @property
     def grade_point(self):
@@ -243,23 +241,51 @@ class Result(TimeStampedModel):
 
         if self.marks is None:
             return "PENDING"
-
-        if self.marks < 30:
+        elif self.marks < 30:
             return "UNSUPPLEMENTABLE FAIL"
-        elif self.marks < 40:
-            return "REPEAT COURSE"
-        return "PASS"
+        elif 30 <= self.marks < 40:
+            return "SUPPLEMENTARY"
+        else:
+            return "PASS"
 
-
+    # =================================================
+    # REMARK (FOR DASHBOARD / TRANSCRIPT DISPLAY)
+    # =================================================
+    @property
+    def remark(self):
+        if self.marks is None:
+            return "Pending"
+        return self.status.title()
 # =====================================================
-# AUTO CREATE STUDENT PROFILE
+# AUTO CREATE USER PROFILES
 # =====================================================
 @receiver(post_save, sender=User)
-def create_student_profile(sender, instance, created, **kwargs):
+def create_user_profiles(sender, instance, created, **kwargs):
 
-    if created and not instance.is_staff and not instance.is_superuser:
+    if not created:
+        return
 
-        if not Student.objects.filter(user=instance).exists():
+    # -----------------------------
+    # STAFF / ADMIN PROFILE
+    # -----------------------------
+    if instance.is_staff or instance.is_superuser:
+
+        if not hasattr(instance, "staff"):
+
+            Staff.objects.create(
+                user=instance,
+                staff_id=f"STF{instance.id:04d}",
+                department="Administration",
+                role="Administrator",
+                phone_number=""
+            )
+
+    # -----------------------------
+    # STUDENT PROFILE
+    # -----------------------------
+    else:
+
+        if not hasattr(instance, "student"):
 
             Student.objects.create(
                 user=instance,
@@ -267,3 +293,4 @@ def create_student_profile(sender, instance, created, **kwargs):
                 program="Not Assigned",
                 year=1
             )
+

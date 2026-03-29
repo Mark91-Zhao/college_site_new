@@ -1,17 +1,29 @@
-{% extends "portal/base.html" %}
+{% extends "base.html" %}
 {% block title %}Staff Dashboard{% endblock %}
 {% block content %}
 
 <div class="container-fluid mt-4">
+
+    <!-- ================= PROFILE CARD ================= -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5>My Profile</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Name:</strong> {{ request.user.get_full_name }}</p>
+            <p><strong>Email:</strong> {{ request.user.email }}</p>
+            <p><strong>Department:</strong> {{ request.user.staff.department }}</p>
+            <p><strong>Role:</strong> {{ request.user.staff.role }}</p>
+            <p><strong>Phone:</strong> {{ request.user.staff.phone_number }}</p>
+        </div>
+    </div>
 
     <h2 class="mb-4 text-center text-success fw-bold">
         📊 Academic Control Dashboard
     </h2>
 
     <!-- ================= SUMMARY CARDS ================= -->
-
     <div class="row g-4 mb-4">
-
         <div class="col-md-3">
             <div class="card shadow-sm border-success text-center h-100">
                 <div class="card-body">
@@ -47,11 +59,9 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- ================= ACTION BUTTONS ================= -->
-
     <div class="text-center mb-5">
         <a href="{% url 'portal:add_result' %}" class="btn btn-primary mx-2">➕ Add Result</a>
         <a href="{% url 'portal:upload_results' %}" class="btn btn-success mx-2">📂 Upload CSV</a>
@@ -59,10 +69,54 @@
         <a href="{% url 'admin:index' %}" class="btn btn-dark mx-2">⚙ Admin</a>
     </div>
 
+    <!-- ================= GPA DISTRIBUTION ================= -->
+    <h4 class="mb-3">🎓 GPA Distribution</h4>
+    <ul>
+        <li>Distinction (≥3.5): {{ distinction_count }}</li>
+        <li>Upper Credit (3.0–3.49): {{ upper_count }}</li>
+        <li>Lower Credit (2.5–2.99): {{ lower_count }}</li>
+        <li>Average (1.5–2.49): {{ average_count }}</li>
+        <li>Pass (1.0–1.49): {{ pass_count }}</li>
+        <li>Fail (<1.0): {{ fail_count }}</li>
+    </ul>
+
+    <div class="gpa-chart mb-5">
+        <canvas id="gpaChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('gpaChart').getContext('2d');
+        const gpaChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Distinction', 'Upper Credit', 'Lower Credit', 'Average', 'Pass', 'Fail'],
+                datasets: [{
+                    label: 'Number of Students',
+                    data: [
+                        {{ distinction_count }},
+                        {{ upper_count }},
+                        {{ lower_count }},
+                        {{ average_count }},
+                        {{ pass_count }},
+                        {{ fail_count }}
+                    ],
+                    backgroundColor: ['green', 'blue', 'orange', 'purple', 'teal', 'red']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'GPA Distribution Overview' }
+                },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    </script>
+
     <!-- ================= RECENT STUDENTS ================= -->
-
     <h4 class="mb-3">👨‍🎓 Recent Students</h4>
-
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-light">
@@ -71,6 +125,8 @@
                     <th>Name</th>
                     <th>Program</th>
                     <th>Year</th>
+                    <th>Email</th>
+                    <th>Phone</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,12 +136,12 @@
                     <td>{{ student.user.get_full_name }}</td>
                     <td>{{ student.program }}</td>
                     <td>{{ student.year }}</td>
+                    <td>{{ student.user.email }}</td>
+                    <td>{{ student.phone_number }}</td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center text-muted">
-                        No students found.
-                    </td>
+                    <td colspan="6" class="text-center text-muted">No students found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -96,33 +152,17 @@
     <nav class="mt-3">
         <ul class="pagination justify-content-center">
             {% if students.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?student_page={{ students.previous_page_number }}">
-                        Previous
-                    </a>
-                </li>
+                <li class="page-item"><a class="page-link" href="?student_page={{ students.previous_page_number }}">Previous</a></li>
             {% endif %}
-
-            <li class="page-item active">
-                <span class="page-link">
-                    Page {{ students.number }} of {{ students.paginator.num_pages }}
-                </span>
-            </li>
-
+            <li class="page-item active"><span class="page-link">Page {{ students.number }} of {{ students.paginator.num_pages }}</span></li>
             {% if students.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?student_page={{ students.next_page_number }}">
-                        Next
-                    </a>
-                </li>
+                <li class="page-item"><a class="page-link" href="?student_page={{ students.next_page_number }}">Next</a></li>
             {% endif %}
         </ul>
     </nav>
 
     <!-- ================= RECENT RESULTS ================= -->
-
     <h4 class="mt-5 mb-3">📊 Recent Results</h4>
-
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-light">
@@ -155,9 +195,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
-                        No results available.
-                    </td>
+                    <td colspan="6" class="text-center text-muted">No results available.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -168,25 +206,11 @@
     <nav class="mt-3">
         <ul class="pagination justify-content-center">
             {% if recent_results.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?results_page={{ recent_results.previous_page_number }}">
-                        Previous
-                    </a>
-                </li>
+                <li class="page-item"><a class="page-link" href="?results_page={{ recent_results.previous_page_number }}">Previous</a></li>
             {% endif %}
-
-            <li class="page-item active">
-                <span class="page-link">
-                    Page {{ recent_results.number }} of {{ recent_results.paginator.num_pages }}
-                </span>
-            </li>
-
+            <li class="page-item active"><span class="page-link">Page {{ recent_results.number }} of {{ recent_results.paginator.num_pages }}</span></li>
             {% if recent_results.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?results_page={{ recent_results.next_page_number }}">
-                        Next
-                    </a>
-                </li>
+                <li class="page-item"><a class="page-link" href="?results_page={{ recent_results.next_page_number }}">Next</a></li>
             {% endif %}
         </ul>
     </nav>

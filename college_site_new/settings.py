@@ -12,28 +12,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------------------------
 # SECURITY
 # -------------------------------------------------
-
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
     "django-insecure-local-dev-key-123456"
 )
 
-# IMPORTANT:
-# On Render set DEBUG=False
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# TEMPORARY: force debug locally
+DEBUG = True
+ALLOWED_HOSTS = ["*"]
 
-# Your Render domain
-ALLOWED_HOSTS = [
-    "college-site-new.onrender.com",
-    "localhost",
-    "127.0.0.1",
-    # Add custom domain here if you use one
-]
-
-# CSRF for HTTPS on Render
 CSRF_TRUSTED_ORIGINS = [
     "https://college-site-new.onrender.com",
-    "http://college-site-new.onrender.com",  # allow http for testing
+    "http://college-site-new.onrender.com",
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -41,7 +31,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # -------------------------------------------------
 # APPLICATIONS
 # -------------------------------------------------
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -50,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "portal",
+    "widget_tweaks",  # ✅ add this line
 ]
 
 # -------------------------------------------------

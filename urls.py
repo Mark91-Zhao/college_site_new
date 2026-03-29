@@ -9,9 +9,15 @@ from django.urls import path, include
 
 urlpatterns = [
     # ---------------------------
-    # Admin (only once here)
+    # Admin site
     # ---------------------------
     path("admin/", admin.site.urls),
+
+    # ---------------------------
+    # Django's built-in authentication system
+    # Provides: login, logout, password reset, password change, etc.
+    # ---------------------------
+    path("accounts/", include("django.contrib.auth.urls")),
 
     # ---------------------------
     # Portal app routes

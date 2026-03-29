@@ -1,4 +1,4 @@
-{% extends "portal/base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Student Registration{% endblock %}
 
@@ -17,50 +17,64 @@
                     {% csrf_token %}
 
                     <div class="mb-3">
-                        <label>Registration Number</label>
+                        <label class="form-label">Registration Number</label>
                         <input type="text" name="reg_number" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
-                        <label>Full Name</label>
+                        <label class="form-label">Full Name</label>
                         <input type="text" name="full_name" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
-                        <label>Program</label>
+                        <label class="form-label">Program</label>
                         <input type="text" name="program" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
-                        <label>Year</label>
+                        <label class="form-label">Year</label>
                         <input type="number" name="year" class="form-control" value="1" required>
                     </div>
 
                     <div class="mb-3">
-                        <label>Email</label>
+                        <label class="form-label">Email</label>
                         <input type="email" name="email" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
-                        <label>Phone Number</label>
+                        <label class="form-label">Phone Number</label>
                         <input type="text" name="phone_number" class="form-control">
                     </div>
 
                     <div class="mb-3">
-                        <label>Password</label>
+                        <label class="form-label">Password</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
-                        <label>Confirm Password</label>
+                        <label class="form-label">Confirm Password</label>
                         <input type="password" name="confirm_password" class="form-control" required>
+                        <small class="text-muted">Re-enter your password to confirm</small>
                     </div>
 
                     <button type="submit" class="btn btn-success w-100">
                         Register
                     </button>
-
                 </form>
+
+                <div class="mt-3 text-center">
+                    Already registered? 
+                    <a href="{% url 'portal:student_login' %}">Login here</a>
+                </div>
+
+                <!-- Admin Contact -->
+                <div class="mt-4 text-center">
+                    <p class="text-muted small">
+                        For registration or account issues, please contact the Academic Office / Admin:<br>
+                        Phone: 0999169227<br>
+                        Email: kanthitimark@gmail.com
+                    </p>
+                </div>
 
             </div>
         </div>

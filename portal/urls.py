@@ -1,9 +1,3 @@
-"""
-portal/urls.py
-Clean Configuration
-Using Django Built-in Authentication
-"""
-
 from django.urls import path
 from . import views
 
@@ -35,15 +29,8 @@ urlpatterns = [
     # =====================================================
     # USER PROFILES
     # =====================================================
-    path("student/profile/", views.student_profile, name="student_profile"),
     path("staff/profile/", views.staff_profile, name="staff_profile"),
-
-    # STAFF PROFILE UPDATE
-    path(
-        "staff/profile/update/<int:pk>/",
-        views.staff_update,
-        name="staff_update"
-    ),
+    path("staff/profile/update/<int:pk>/", views.staff_update, name="staff_update"),
 
     # =====================================================
     # STUDENT MANAGEMENT (STAFF ONLY)
@@ -51,7 +38,7 @@ urlpatterns = [
     path("students/", views.student_list, name="student_list"),
     path("students/create/", views.student_create, name="student_create"),
     path("students/<int:pk>/", views.student_detail, name="student_detail"),
-    path("students/<int:pk>/update/", views.student_update, name="student_update"),
+    path("students/<int:pk>/update/", views.student_update_staff, name="student_update_staff"),
     path("students/<int:pk>/delete/", views.student_delete, name="student_delete"),
 
     # =====================================================
@@ -63,15 +50,27 @@ urlpatterns = [
     path("courses/<int:pk>/delete/", views.course_delete, name="course_delete"),
 
     # =====================================================
+    # STUDENT RESULTS
+    # =====================================================
+    path("student/results/", views.student_results, name="student_results"),
+
+    # =====================================================
     # ACADEMIC OPERATIONS
     # =====================================================
     path("staff/add-result/", views.add_result, name="add_result"),
     path("upload-results/", views.upload_results, name="upload_results"),
     path("download-template/", views.download_results_template, name="download_results_template"),
+    path("staff/export-excel/", views.export_excel, name="export_excel"),
 
     # =====================================================
     # TRANSCRIPTS
     # =====================================================
     path("transcript/", views.transcript, name="transcript"),
     path("transcript/pdf/", views.export_transcript_pdf, name="export_transcript_pdf"),
+
+    # =====================================================
+    # CUSTOM LOGIN ROUTES
+    # =====================================================
+    path("student/login/", views.student_login, name="student_login"),
+    path("staff/login/", views.staff_login, name="staff_login"),
 ]

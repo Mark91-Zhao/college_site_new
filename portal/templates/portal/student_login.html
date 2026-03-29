@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block content %}
-
 <div class="row justify-content-center">
     <div class="col-md-5">
 
@@ -27,11 +26,11 @@
                 <form method="post" novalidate>
                     {% csrf_token %}
 
-                    <!-- Registration Number -->
+                    <!-- Registration Number (used as username) -->
                     <div class="mb-3">
                         <label class="form-label">Registration Number</label>
                         <input type="text"
-                               name="reg_number"
+                               name="username"
                                class="form-control"
                                placeholder="e.g. MCFW2026001"
                                required>
@@ -52,19 +51,21 @@
                         <i class="bi bi-box-arrow-in-right"></i>
                         Login
                     </button>
-
                 </form>
 
                 <!-- Extra Links -->
                 <div class="text-center mt-4">
-
                     <p class="mb-2">
                         Don't have an account?
-                        <a href="{% url 'portal:student_register' %}">
+                        <a href="{% url 'portal:register' %}">
                             Register here
                         </a>
                     </p>
-
+                    <p class="text-muted small">
+                        Forgot your password? Please contact the Academic Office / Admin:<br>
+                        Phone: 0999169227<br>
+                        Email: kanthitimark@gmail.com
+                    </p>
                 </div>
 
             </div>
@@ -72,5 +73,4 @@
 
     </div>
 </div>
-
 {% endblock %}

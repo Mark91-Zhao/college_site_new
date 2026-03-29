@@ -6,96 +6,131 @@
     <title>{% block title %}MCFW Portal{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
 </head>
 
-<body class="bg-light">
+<body class="bg-light d-flex flex-column min-vh-100">
 
-<div class="d-flex">
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+    <div class="container">
 
-    <!-- ================= SIDEBAR ================= -->
-    <div class="bg-success text-white p-3 vh-100" style="width:250px;">
+        <!-- Logo + Brand -->
+        <a class="navbar-brand fw-bold d-flex align-items-center"
+           href="{% url 'portal:home' %}">
 
-        <h4 class="fw-bold text-center mb-4">
-            <img src="{% static 'images/logo.png' %}" height="50" alt="Logo"><br>
-            MCFW
-        </h4>
+            <img src="{% static 'images/logo.png' %}"
+                 alt="Logo"
+                 height="40"
+                 class="me-2">
 
-        <hr class="bg-light">
+            MCFW Portal
+        </a>
 
-        <ul class="nav flex-column">
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'portal:home' %}">
-                    <i class="bi bi-house"></i> Home
-                </a>
-            </li>
+        <div class="collapse navbar-collapse" id="navbarNav">
 
-            {% if user.is_authenticated %}
+            <ul class="navbar-nav ms-auto">
 
-                {% if user.is_staff %}
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white" href="{% url 'portal:staff_dashboard' %}">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                </li>
+                {% if user.is_authenticated %}
+
+                    {% if user.staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'portal:staff_dashboard' %}">
+                                Staff Dashboard
+                            </a>
+                        </li>
+                    {% elif user.student %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'portal:student_dashboard' %}">
+                                Student Dashboard
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <!-- Secure Logout -->
+                    <li class="nav-item">
+                        <form method="post"
+                              action="{% url 'logout' %}"
+                              class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-light btn-sm ms-2">
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+
                 {% else %}
-                <li class="nav-item mb-2">
-                    <a class="nav-link text-white" href="{% url 'portal:student_dashboard' %}">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                </li>
+
+                    <!-- Guest login options -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown">
+                            Login
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'portal:student_login' %}">Student Login</a></li>
+                            <li><a class="dropdown-item" href="{% url 'portal:staff_login' %}">Staff Login</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'portal:register' %}">
+                            Register
+                        </a>
+                    </li>
+
                 {% endif %}
 
-                <li class="nav-item mt-3">
-                    <form method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-light btn-sm w-100">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </button>
-                    </form>
-                </li>
+            </ul>
 
-            {% else %}
-
-                <li class="nav-item mt-3">
-                    <a href="{% url 'login' %}" class="btn btn-light btn-sm w-100">
-                        Login
-                    </a>
-                </li>
-
-            {% endif %}
-
-        </ul>
+        </div>
     </div>
+</nav>
 
-    <!-- ================= MAIN CONTENT ================= -->
-    <div class="flex-grow-1 p-4">
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
-
-    </div>
-
+<!-- ================= MESSAGES ================= -->
+<div class="container mt-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
 </div>
 
-<!-- Bootstrap JS -->
+<!-- ================= CONTENT ================= -->
+<main class="container mt-4 mb-5 flex-grow-1">
+    {% block content %}
+    {% endblock %}
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="bg-white border-top text-center py-3 mt-auto">
+    <small>
+        © 2026 Malawi College of Forestry & Wildlife — Developed by Mark Kanthiti
+    </small>
+    <br>
+    <p class="text-muted small mt-2">
+        For account or login issues, please contact the Academic Office / Admin:<br>
+        Phone: 0999169227<br>
+        Email: kanthitimark@gmail.com
+    </p>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

@@ -74,6 +74,61 @@ class StudentForm(forms.ModelForm):
 
 
 # =====================================================
+# STUDENT PROFILE UPDATE FORM (SELF-SERVICE)
+# =====================================================
+class StudentUpdateForm(forms.ModelForm):
+    """
+    Form for students to update their own profile, including User fields.
+    """
+    first_name = forms.CharField(
+        label="First Name",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    last_name = forms.CharField(
+        label="Last Name",
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    email = forms.EmailField(
+        label="Email",
+        widget=forms.EmailInput(attrs={"class": "form-control"})
+    )
+
+    class Meta:
+        model = Student
+        fields = ["reg_number", "program", "year", "phone_number"]
+
+        widgets = {
+            "reg_number": forms.TextInput(attrs={"class": "form-control"}),
+            "program": forms.TextInput(attrs={"class": "form-control"}),
+            "year": forms.NumberInput(attrs={"class": "form-control"}),
+            "phone_number": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        # Get the student instance
+        student = kwargs.get("instance")
+        super().__init__(*args, **kwargs)
+
+        if student and student.user:
+            self.fields["first_name"].initial = student.user.first_name
+            self.fields["last_name"].initial = student.user.last_name
+            self.fields["email"].initial = student.user.email
+
+    def save(self, commit=True):
+        student = super().save(commit=False)
+        user = student.user
+
+        # Update linked User fields
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+        user.email = self.cleaned_data["email"]
+
+        if commit:
+            user.save()
+            student.save()
+        return student
+
+# =====================================================
 # STAFF FORM (ADMIN USE)
 # =====================================================
 class StaffForm(forms.ModelForm):
