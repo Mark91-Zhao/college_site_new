@@ -6,12 +6,11 @@ from .models import Student, Staff, Course, Semester, Result
 class ResultInline(admin.TabularInline):
     model = Result
     extra = 0
-    readonly_fields = ("grade_letter", "grade_point", "status_display")
-    fields = ("course", "semester", "marks", "grade_letter", "grade_point", "status_display")
+    readonly_fields = ("grade_point", "status_display")  # ✅ removed grade_letter
+    fields = ("course", "semester", "marks", "grade_point", "status_display")
     can_delete = False
     show_change_link = True
 
-    # Display property in inline safely
     def status_display(self, obj):
         status = obj.status or "Pending"
         if status == "PASS":
@@ -37,7 +36,6 @@ class StudentAdmin(admin.ModelAdmin):
         "withdrawn_display",
         "phone_number_display",
     )
-
     search_fields = (
         "reg_number",
         "user__username",
@@ -46,12 +44,10 @@ class StudentAdmin(admin.ModelAdmin):
         "user__last_name",
         "phone_number",
     )
-
     list_filter = ("year", "program")
     ordering = ("reg_number",)
     inlines = [ResultInline]
 
-    # ------------------------ Display Methods ------------------------
     def user_name(self, obj):
         return obj.user.get_full_name()
     user_name.short_description = "Student Name"
@@ -72,15 +68,12 @@ class StudentAdmin(admin.ModelAdmin):
         return obj.phone_number or "N/A"
     phone_number_display.short_description = "Phone"
 
-    # ----------------- Safe Mini Dashboard -----------------
     def change_view(self, request, object_id, form_url="", extra_context=None):
         student = self.get_object(request, object_id)
         if not student:
             return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
         results = student.results.all()
-
-        # Python-level filtering using property
         passed = sum(1 for r in results if r.status == "PASS")
         failed = sum(1 for r in results if r.status == "UNSUPPLEMENTABLE FAIL")
         repeat = sum(1 for r in results if r.status == "REPEAT COURSE")
@@ -97,14 +90,8 @@ class StudentAdmin(admin.ModelAdmin):
                 <p>✅ Passed: {} | ❌ Failed: {} | 🔁 Repeat: {}</p>
             </div>
             """,
-            gpa,
-            classification,
-            withdrawn,
-            passed,
-            failed,
-            repeat,
+            gpa, classification, withdrawn, passed, failed, repeat,
         )
-
         extra_context = extra_context or {}
         extra_context["mini_dashboard"] = mini_dashboard
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
@@ -113,19 +100,11 @@ class StudentAdmin(admin.ModelAdmin):
 # ========================= STAFF ADMIN =========================
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = (
-        "staff_id",
-        "user_name",
-        "department",
-        "role",
-        "phone_number_display",
-    )
-
+    list_display = ("staff_id", "user_name", "department", "role", "phone_number_display")
     search_fields = ("staff_id", "user__username", "user__email", "phone_number")
     list_filter = ("department", "role")
     ordering = ("staff_id",)
 
-    # ----------------- Staff Mini Dashboard -----------------
     def change_view(self, request, object_id, form_url="", extra_context=None):
         staff = self.get_object(request, object_id)
         if not staff:
@@ -142,10 +121,8 @@ class StaffAdmin(admin.ModelAdmin):
                 <p>📊 Results Entered: {}</p>
             </div>
             """,
-            students_count,
-            results_count,
+            students_count, results_count,
         )
-
         extra_context = extra_context or {}
         extra_context["mini_dashboard"] = mini_dashboard
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
@@ -183,21 +160,13 @@ class ResultAdmin(admin.ModelAdmin):
         "course",
         "semester",
         "marks",
-        "grade_letter",
-        "grade_point",
+        "grade_point",   # ✅ replaced grade_letter
         "status_badge",
     )
-
-    search_fields = (
-        "student__reg_number",
-        "student__user__username",
-        "course__name",
-    )
-
+    search_fields = ("student__reg_number", "student__user__username", "course__name")
     list_filter = ("semester", "course")
     ordering = ("-semester",)
-
-    readonly_fields = ("grade_letter", "grade_point", "status_display")
+    readonly_fields = ("grade_point", "status_display")  # ✅ removed grade_letter
 
     def student_name(self, obj):
         return obj.student.user.get_full_name()

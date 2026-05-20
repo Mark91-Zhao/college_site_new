@@ -44,19 +44,16 @@ class Student(TimeStampedModel):
         return f"{self.user.get_full_name()} ({self.reg_number})"
 
     # =================================================
-    # GPA CALCULATION (SAFE)
+    # GPA CALCULATION (Σ(Credit Hours × Points) / Σ(Credit Hours))
     # =================================================
     @property
     def gpa(self):
-
         total_points = 0
         total_credits = 0
 
         for result in self.results.all():
-
             if result.grade_point is None:
                 continue
-
             total_points += result.grade_point * result.course.credit_hours
             total_credits += result.course.credit_hours
 
@@ -66,11 +63,10 @@ class Student(TimeStampedModel):
         return round(total_points / total_credits, 2)
 
     # =================================================
-    # GPA CLASSIFICATION (YOUR ORIGINAL SCALE)
+    # GPA CLASSIFICATION (Curriculum 8.1)
     # =================================================
     @property
     def gpa_classification(self):
-
         gpa = self.gpa
 
         if gpa < 1.0:
@@ -188,57 +184,31 @@ class Result(TimeStampedModel):
         return f"{self.student.reg_number} - {self.course.code}"
 
     # =================================================
-    # GRADE POINT SYSTEM
+    # GRADE POINT SYSTEM (Curriculum 8.2 strict cutoffs)
     # =================================================
     @property
     def grade_point(self):
-
         if self.marks is None:
             return None
 
         if self.marks >= 80:
-            return 4.0
+            return 4.0   # Distinction
         elif self.marks >= 70:
-            return 3.5
+            return 3.5   # Upper Credit
         elif self.marks >= 65:
-            return 3.0
+            return 3.0   # Lower Credit
         elif self.marks >= 50:
-            return 2.0
+            return 2.0   # Average
         elif self.marks >= 40:
-            return 1.0
+            return 1.0   # Pass
         else:
-            return 0.0
+            return 0.0   # Fail
 
     # =================================================
-    # LETTER GRADE
-    # =================================================
-    @property
-    def grade_letter(self):
-
-        if self.marks is None:
-            return None
-
-        if self.marks >= 80:
-            return "A"
-        elif self.marks >= 70:
-            return "B+"
-        elif self.marks >= 65:
-            return "B"
-        elif self.marks >= 50:
-            return "C"
-        elif self.marks >= 40:
-            return "D"
-        elif self.marks >= 30:
-            return "E1"
-        else:
-            return "E2"
-
-    # =================================================
-    # ACADEMIC STATUS
+    # STATUS (Supplementary / Fail)
     # =================================================
     @property
     def status(self):
-
         if self.marks is None:
             return "PENDING"
         elif self.marks < 30:
@@ -248,14 +218,13 @@ class Result(TimeStampedModel):
         else:
             return "PASS"
 
-    # =================================================
-    # REMARK (FOR DASHBOARD / TRANSCRIPT DISPLAY)
-    # =================================================
     @property
     def remark(self):
         if self.marks is None:
             return "Pending"
         return self.status.title()
+
+
 # =====================================================
 # AUTO CREATE USER PROFILES
 # =====================================================
@@ -265,13 +234,8 @@ def create_user_profiles(sender, instance, created, **kwargs):
     if not created:
         return
 
-    # -----------------------------
-    # STAFF / ADMIN PROFILE
-    # -----------------------------
     if instance.is_staff or instance.is_superuser:
-
         if not hasattr(instance, "staff"):
-
             Staff.objects.create(
                 user=instance,
                 staff_id=f"STF{instance.id:04d}",
@@ -279,18 +243,11 @@ def create_user_profiles(sender, instance, created, **kwargs):
                 role="Administrator",
                 phone_number=""
             )
-
-    # -----------------------------
-    # STUDENT PROFILE
-    # -----------------------------
     else:
-
         if not hasattr(instance, "student"):
-
             Student.objects.create(
                 user=instance,
                 reg_number=instance.username,
                 program="Not Assigned",
                 year=1
             )
-
