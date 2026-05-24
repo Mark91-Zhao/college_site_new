@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Update Profile | Malawi College of Forestry & Wildlife Portal{% endblock %}
+{% block title %}Update Student | Malawi College of Forestry & Wildlife Portal{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -17,17 +17,42 @@
     {% endif %}
 
     <!-- ===================================================== -->
-    <!-- LEGACY UPDATE PAGE NOTICE -->
+    <!-- STUDENT UPDATE FORM -->
     <!-- ===================================================== -->
-    <div class="alert alert-warning shadow-sm">
-        <h4 class="mb-2">Profile Update Moved</h4>
-        <p>
-            Profile updates are now handled directly inside the 
-            <a href="{% url 'portal:student_dashboard' %}" class="fw-bold text-success">
-                Student Dashboard
-            </a>.
-        </p>
-        <p class="text-muted">Please use the dashboard to view and edit your profile information.</p>
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Update Student Record</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="program" class="form-label">Program</label>
+                    <input type="text" class="form-control" id="program" name="program" value="{{ student.program }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="year" class="form-label">Year</label>
+                    <input type="number" class="form-control" id="year" name="year" value="{{ student.year }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label">Phone Number</label>
+                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ student.phone_number }}">
+                </div>
+
+                <!-- ✅ Manual GPA field -->
+                <div class="mb-3">
+                    <label for="gpa" class="form-label">GPA</label>
+                    <input type="text" class="form-control" id="gpa" name="gpa" value="{{ student.gpa }}">
+                    <small class="text-muted">Enter GPA manually (e.g., 3.68)</small>
+                </div>
+
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <a href="{% url 'portal:student_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
     </div>
 
 </div>

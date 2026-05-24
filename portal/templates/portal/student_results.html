@@ -12,6 +12,7 @@
                 <th>Semester</th>
                 <th>Course</th>
                 <th>Marks</th>
+                <th>Manual GPA</th>
                 <th>Grade</th>
                 <th>Status</th>
                 <th>Remark</th>
@@ -23,33 +24,24 @@
                 <td>{{ result.semester.name }}</td>
                 <td>{{ result.course.name }}</td>
                 <td>{{ result.marks|default:"-" }}</td>
+                <td>{{ result.manual_gpa|default:"-" }}</td>
                 <td>{{ result.grade_letter|default:"-" }}</td>
                 <td>
                     {% if result.status == "PASS" %}
                         <span class="badge bg-success">PASS</span>
                     {% elif result.status == "UNSUPPLEMENTABLE FAIL" %}
                         <span class="badge bg-danger">FAIL</span>
-                    {% elif result.status == "REPEAT COURSE" %}
-                        <span class="badge bg-warning text-dark">REPEAT</span>
+                    {% elif result.status == "SUPPLEMENTARY" %}
+                        <span class="badge bg-warning text-dark">SUPPLEMENTARY</span>
                     {% else %}
                         <span class="badge bg-secondary">{{ result.status|default:"Pending" }}</span>
                     {% endif %}
                 </td>
-                <td>
-                    {% if result.status == "PASS" %}
-                        Cleared successfully
-                    {% elif result.status == "UNSUPPLEMENTABLE FAIL" %}
-                        Must withdraw or repeat
-                    {% elif result.status == "REPEAT COURSE" %}
-                        Retake required
-                    {% else %}
-                        Awaiting confirmation
-                    {% endif %}
-                </td>
+                <td>{{ result.remark }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center text-muted">No results available yet.</td>
+                <td colspan="7" class="text-center text-muted">No results available yet.</td>
             </tr>
             {% endfor %}
         </tbody>

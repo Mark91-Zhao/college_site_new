@@ -1,7 +1,7 @@
 """
 portal/models.py
-Complete Academic Management System
-Production-Ready & Structure Preserved
+Academic Management System
+Production-Ready with Semester GPA + GPA-based Status
 """
 
 from django.db import models
@@ -25,13 +25,7 @@ class TimeStampedModel(models.Model):
 # STUDENT
 # =====================================================
 class Student(TimeStampedModel):
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="student"
-    )
-
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student")
     reg_number = models.CharField(max_length=20, unique=True, db_index=True)
     program = models.CharField(max_length=150, db_index=True)
     year = models.PositiveIntegerField(default=1)
@@ -43,32 +37,16 @@ class Student(TimeStampedModel):
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.reg_number})"
 
-    # =================================================
-    # GPA CALCULATION (Σ(Credit Hours × Points) / Σ(Credit Hours))
-    # =================================================
     @property
-    def gpa(self):
-        total_points = 0
-        total_credits = 0
+    def cumulative_gpa(self):
+        gpas = [sp.gpa for sp in self.semester_performances.all() if sp.gpa is not None]
+        return round(sum(gpas) / len(gpas), 2) if gpas else None
 
-        for result in self.results.all():
-            if result.grade_point is None:
-                continue
-            total_points += result.grade_point * result.course.credit_hours
-            total_credits += result.course.credit_hours
-
-        if total_credits == 0:
-            return 0.0
-
-        return round(total_points / total_credits, 2)
-
-    # =================================================
-    # GPA CLASSIFICATION (Curriculum 8.1)
-    # =================================================
     @property
     def gpa_classification(self):
-        gpa = self.gpa
-
+        gpa = self.cumulative_gpa
+        if gpa is None:
+            return "Not Assigned"
         if gpa < 1.0:
             return "Fail"
         elif gpa < 1.5:
@@ -82,22 +60,12 @@ class Student(TimeStampedModel):
         else:
             return "Distinction"
 
-    @property
-    def is_withdrawn(self):
-        return self.gpa < 1.0
-
 
 # =====================================================
 # STAFF
 # =====================================================
 class Staff(TimeStampedModel):
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="staff"
-    )
-
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="staff")
     staff_id = models.CharField(max_length=20, unique=True, db_index=True)
     department = models.CharField(max_length=150, db_index=True)
     role = models.CharField(max_length=100)
@@ -114,7 +82,6 @@ class Staff(TimeStampedModel):
 # SEMESTER
 # =====================================================
 class Semester(TimeStampedModel):
-
     name = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
 
@@ -130,11 +97,14 @@ class Semester(TimeStampedModel):
 # COURSE
 # =====================================================
 class Course(TimeStampedModel):
-
     code = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=150)
-    credit_hours = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)]
+    credit_hours = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    semester = models.ForeignKey(
+        Semester,
+        on_delete=models.CASCADE,
+        related_name="courses",
+        default=1   # ✅ Default semester ID (must exist in DB)
     )
 
     class Meta:
@@ -145,27 +115,12 @@ class Course(TimeStampedModel):
 
 
 # =====================================================
-# RESULT
+# RESULT (Course Marks + Grade Letter + Status)
 # =====================================================
 class Result(TimeStampedModel):
-
-    student = models.ForeignKey(
-        Student,
-        on_delete=models.CASCADE,
-        related_name="results"
-    )
-
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="results"
-    )
-
-    semester = models.ForeignKey(
-        Semester,
-        on_delete=models.CASCADE,
-        related_name="results"
-    )
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="results")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="results")
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name="results")
 
     marks = models.FloatField(
         validators=[MinValueValidator(0), MaxValueValidator(100)],
@@ -183,46 +138,85 @@ class Result(TimeStampedModel):
     def __str__(self):
         return f"{self.student.reg_number} - {self.course.code}"
 
-    # =================================================
-    # GRADE POINT SYSTEM (Curriculum 8.2 strict cutoffs)
-    # =================================================
     @property
-    def grade_point(self):
+    def grade_letter(self):
         if self.marks is None:
             return None
-
-        if self.marks >= 80:
-            return 4.0   # Distinction
-        elif self.marks >= 70:
-            return 3.5   # Upper Credit
-        elif self.marks >= 65:
-            return 3.0   # Lower Credit
-        elif self.marks >= 50:
-            return 2.0   # Average
-        elif self.marks >= 40:
-            return 1.0   # Pass
+        marks = float(self.marks)
+        if marks >= 80:
+            return "A"
+        elif marks >= 70:
+            return "B"
+        elif marks >= 60:
+            return "C"
+        elif marks >= 50:
+            return "D"
         else:
-            return 0.0   # Fail
+            return "F"
 
-    # =================================================
-    # STATUS (Supplementary / Fail)
-    # =================================================
     @property
     def status(self):
-        if self.marks is None:
-            return "PENDING"
-        elif self.marks < 30:
-            return "UNSUPPLEMENTABLE FAIL"
-        elif 30 <= self.marks < 40:
-            return "SUPPLEMENTARY"
-        else:
-            return "PASS"
-
-    @property
-    def remark(self):
+        """
+        Per-course status based on marks.
+        """
         if self.marks is None:
             return "Pending"
-        return self.status.title()
+        elif self.marks >= 40:
+            return "Pass"
+        else:
+            return "Repeat"
+
+
+# =====================================================
+# SEMESTER PERFORMANCE (Stores GPA + Classification)
+# =====================================================
+class SemesterPerformance(TimeStampedModel):
+    STATUS_CHOICES = [
+        ("Distinction", "Distinction"),
+        ("Upper Credit", "Upper Credit"),
+        ("Lower Credit", "Lower Credit"),
+        ("Average", "Average"),
+        ("Pass", "Pass"),
+        ("Repeat", "Repeat"),
+        ("Pending", "Pending"),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="semester_performances")
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name="semester_performances")
+    gpa = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(4.0)], null=True, blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="Pending"
+    )
+
+    class Meta:
+        unique_together = ("student", "semester")
+        ordering = ["student", "semester"]
+
+    def __str__(self):
+        return f"{self.student.reg_number} - {self.semester.name} ({self.gpa})"
+
+    def save(self, *args, **kwargs):
+        # ✅ Auto-assign status based on GPA thresholds
+        if self.gpa is None:
+            self.status = "Pending"
+        else:
+            gpa = float(self.gpa)
+            if gpa >= 3.5:
+                self.status = "Distinction"
+            elif gpa >= 3.0:
+                self.status = "Upper Credit"
+            elif gpa >= 2.5:
+                self.status = "Lower Credit"
+            elif gpa >= 2.0:
+                self.status = "Average"
+            elif gpa >= 1.0:
+                self.status = "Pass"
+            else:
+                self.status = "Repeat"
+        super().save(*args, **kwargs)
 
 
 # =====================================================
@@ -230,7 +224,6 @@ class Result(TimeStampedModel):
 # =====================================================
 @receiver(post_save, sender=User)
 def create_user_profiles(sender, instance, created, **kwargs):
-
     if not created:
         return
 

@@ -11,6 +11,7 @@
         </ol>
     </nav>
 
+    <!-- Course Metadata -->
     <h2>Course Profile</h2>
     <table class="table table-bordered mt-3">
         <tbody>
@@ -37,33 +38,38 @@
         </tbody>
     </table>
 
-    <!-- Optional: list all results tied to this course -->
+    <!-- Results tied to this course -->
     <h4 class="mt-4">Results for this Course</h4>
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-hover">
+        <thead class="table-success">
             <tr>
                 <th>Student</th>
+                <th>Reg Number</th>
                 <th>Marks</th>
-                <th>Grade Point</th>
+                <th>Manual GPA</th>
+                <th>Grade</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody>
             {% for result in course.results.all %}
             <tr>
-                <td>{{ result.student.user.get_full_name }} ({{ result.student.reg_number }})</td>
+                <td>{{ result.student.user.get_full_name }}</td>
+                <td>{{ result.student.reg_number }}</td>
                 <td>{{ result.marks|default:"-" }}</td>
-                <td>{{ result.grade_point|default:"-" }}</td>
+                <td>{{ result.manual_gpa|default:"-" }}</td>
+                <td>{{ result.grade_letter|default:"-" }}</td>
                 <td>{{ result.status }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" class="text-center text-muted">No results recorded yet.</td>
+                <td colspan="6" class="text-center text-muted">No results recorded for this course.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
+    <!-- Action Buttons -->
     <div class="mt-3">
         <a href="{% url 'course_edit' course.id %}" class="btn btn-warning">Edit</a>
         <a href="{% url 'course_delete' course.id %}" class="btn btn-danger">Delete</a>

@@ -11,11 +11,9 @@
         <thead class="table-success">
             <tr>
                 <th>ID</th>
-                <th>Student</th>
-                <th>Semester</th>
+                <th>Code</th>
                 <th>Name</th>
                 <th>Credit Hours</th>
-                <th>Marks</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -23,11 +21,9 @@
             {% for course in courses %}
             <tr>
                 <td>{{ course.id }}</td>
-                <td>{{ course.student.name }}</td>
-                <td>{{ course.semester.name }}</td>
+                <td>{{ course.code }}</td>
                 <td>{{ course.name }}</td>
                 <td>{{ course.credit_hours }}</td>
-                <td>{{ course.marks }}</td>
                 <td>
                     <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-info" title="View">
                         <i class="bi bi-eye"></i>
@@ -42,7 +38,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center">No courses found.</td>
+                <td colspan="5" class="text-center">No courses found.</td>
             </tr>
             {% endfor %}
         </tbody>

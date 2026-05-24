@@ -1,9 +1,13 @@
 {% extends "base.html" %}
+{% block title %}Student List | Malawi College of Forestry & Wildlife Portal{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Students</h2>
-        <a href="{% url 'student_create' %}" class="btn btn-primary">Add New Student</a>
+        <a href="{% url 'student_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add New Student
+        </a>
     </div>
     <p class="lead">Manage student records here.</p>
 
@@ -14,7 +18,6 @@
                 <th>Name</th>
                 <th>Program</th>
                 <th>Year</th>
-                <th>GPA</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -22,15 +25,14 @@
             {% for student in students %}
             <tr>
                 <td>{{ student.id }}</td>
-                <td>{{ student.name }}</td>
+                <td>{{ student.user.get_full_name }}</td>
                 <td>{{ student.program }}</td>
                 <td>{{ student.year }}</td>
-                <td>{{ student.gpa }}</td>
                 <td>
                     <a href="{% url 'student_detail' student.id %}" class="btn btn-sm btn-info" title="View">
                         <i class="bi bi-eye"></i>
                     </a>
-                    <a href="{% url 'student_edit' student.id %}" class="btn btn-sm btn-warning" title="Edit">
+                    <a href="{% url 'student_update_staff' student.id %}" class="btn btn-sm btn-warning" title="Edit">
                         <i class="bi bi-pencil"></i>
                     </a>
                     <a href="{% url 'student_delete' student.id %}" class="btn btn-sm btn-danger" title="Delete">
@@ -40,7 +42,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center">No students found.</td>
+                <td colspan="5" class="text-center">No students found.</td>
             </tr>
             {% endfor %}
         </tbody>

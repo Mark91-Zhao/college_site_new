@@ -58,6 +58,7 @@ urlpatterns = [
     # ACADEMIC OPERATIONS
     # =====================================================
     path("staff/add-result/", views.add_result, name="add_result"),
+    path("staff/add-semester-gpa/<int:student_id>/<int:semester_id>/", views.add_semester_gpa, name="add_semester_gpa"),
     path("upload-results/", views.upload_results, name="upload_results"),
     path("download-template/", views.download_results_template, name="download_results_template"),
     path("staff/export-excel/", views.export_excel, name="export_excel"),

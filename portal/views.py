@@ -23,8 +23,11 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 
-from .models import Student, Staff, Course, Semester, Result
+from .models import Student, Staff, Course, Result
+from .models import Student, Semester, SemesterPerformance
 from .utils import get_or_create_student
+
+from .forms import SemesterPerformanceForm
 
 # =====================================================
 # ROLE HELPERS
@@ -35,32 +38,6 @@ def is_student(user):
 def is_staff_member(user):
     return user.is_authenticated and hasattr(user, "staff")
 
-# =====================================================
-# GPA CALCULATION
-# =====================================================
-def calculate_gpa(results):
-    total_points = 0
-    total_credits = 0
-    for result in results:
-        if result.grade_point is not None:
-            total_points += result.grade_point * result.course.credit_hours
-            total_credits += result.course.credit_hours
-    if total_credits == 0:
-        return 0.0
-    return round(total_points / total_credits, 2)
-
-def classify_gpa(gpa):
-    if gpa < 1.0:
-        return "Withdraw"
-    elif gpa >= 3.5:
-        return "Distinction"
-    elif gpa >= 3.0:
-        return "Upper Credit"
-    elif gpa >= 2.5:
-        return "Lower Credit"
-    elif gpa >= 1.5:
-        return "Average"
-    return "Pass"
 
 # =====================================================
 # HOME
@@ -80,18 +57,18 @@ def home(request):
 
     if is_student(request.user):
         student = get_or_create_student(request.user)
-        results = student.results.select_related("semester", "course").all()
-        gpa = calculate_gpa(results)
         return render(request, "portal/home.html", {
             "role": "student",
             "student": student,
-            "gpa": gpa,
-            "classification": classify_gpa(gpa),
+            "gpa": student.cumulative_gpa,   # ✅ FIXED
+            "classification": student.gpa_classification,
         })
 
     return render(request, "portal/home.html", {"role": "guest"})
+
+
 # =====================================================
-# LOGIN VIEWS (Student & Staff)
+# LOGIN VIEWS
 # =====================================================
 def student_login(request):
     if request.method == "POST":
@@ -99,7 +76,7 @@ def student_login(request):
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
         if user:
-            if is_student(user):   # ✅ enforce role
+            if is_student(user):
                 login(request, user)
                 return redirect("portal:student_dashboard")
             else:
@@ -114,13 +91,14 @@ def staff_login(request):
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
         if user:
-            if is_staff_member(user):   # ✅ enforce role
+            if is_staff_member(user):
                 login(request, user)
                 return redirect("portal:staff_dashboard")
             else:
                 messages.error(request, "This account is not a staff account.")
                 return redirect("staff_login")
     return render(request, "registration/staff_login.html")
+
 
 # =====================================================
 # STUDENT REGISTRATION
@@ -184,75 +162,38 @@ def student_register(request):
 
     return render(request, "registration/register.html")
 
-# =====================================================
-# STUDENT PROFILE (Legacy → Redirect to Dashboard)
-# =====================================================
-@login_required
-def student_profile(request):
-    """
-    Legacy profile view.
-    Redirects to the unified student dashboard.
-    """
-    return redirect("portal:student_dashboard")
-
 
 # =====================================================
-# STUDENT PROFILE UPDATE (Legacy → Redirect to Dashboard)
+# STUDENT DASHBOARD
 # =====================================================
-@login_required
-def student_update_profile(request):
-    """
-    Legacy update view.
-    Redirects to the unified student dashboard where editing happens inline.
-    """
-    return redirect("portal:student_dashboard")
-
-# ==================== STUDENT DASHBOARD ====================
 @login_required
 def student_dashboard(request):
-    # Block non-students
     if not hasattr(request.user, "student"):
         messages.error(request, "Access denied. Students only.")
         return redirect("portal:home")
 
     student = get_or_create_student(request.user)
     results = student.results.select_related("semester", "course").all()
-
-    cumulative_gpa = calculate_gpa(results)
-    academic_status = classify_gpa(cumulative_gpa)
-    all_passed = all(result.status == "PASS" for result in results)
-
-    # Semester-wise data
     semesters = Semester.objects.order_by("year", "name")
-    semester_data = []
-    for semester in semesters:
-        semester_results = results.filter(semester=semester)
-        if not semester_results.exists():
-            continue
-        total_points = sum((res.grade_point or 0) * res.course.credit_hours for res in semester_results)
-        total_credits = sum(res.course.credit_hours for res in semester_results if res.grade_point is not None)
-        semester_gpa = round(total_points / total_credits, 2) if total_credits else 0.0
-        semester_data.append({"semester": semester, "gpa": semester_gpa, "results": semester_results})
 
-    # ✅ Add the update form here
     form = StudentUpdateForm(instance=student)
 
     context = {
         "student": student,
         "form": form,
-        "gpa": cumulative_gpa,
-        "academic_status": academic_status,
-        "congratulations": all_passed,
-        "semester_data": semester_data,
+        "gpa": student.cumulative_gpa,
+        "academic_status": student.gpa_classification,
+        "congratulations": all(result.status == "Pass" for result in results),
+        "semester_data": results,
+        "semesters": semesters,  # ✅ added
     }
     return render(request, "portal/student_dashboard.html", context)
 
-# ==================== STUDENT RESULTS ====================
+# =====================================================
+# STUDENT RESULTS
+# =====================================================
 @login_required
 def student_results(request):
-    """
-    Display all results for the logged-in student.
-    """
     student = get_or_create_student(request.user)
     results = student.results.select_related("course", "semester").all()
 
@@ -262,50 +203,22 @@ def student_results(request):
     })
 
 
-# ==================== TRANSCRIPT HTML ====================
+# =====================================================
+# TRANSCRIPT HTML
+# =====================================================
 @login_required
 def transcript(request):
-    """
-    Display a detailed transcript in HTML format.
-    """
     student = get_or_create_student(request.user)
     results = student.results.select_related("semester", "course").all()
 
-    cumulative_gpa = calculate_gpa(results)
-    classification = classify_gpa(cumulative_gpa)
-    all_passed = all(result.status == "PASS" for result in results)
-
-    semesters = Semester.objects.order_by("year", "name")
-    semester_data = []
-    for semester in semesters:
-        semester_results = results.filter(semester=semester)
-        if not semester_results.exists():
-            continue
-
-        total_points = sum(
-            (res.grade_point or 0) * res.course.credit_hours for res in semester_results
-        )
-        total_credits = sum(
-            res.course.credit_hours for res in semester_results if res.grade_point is not None
-        )
-        semester_gpa = round(total_points / total_credits, 2) if total_credits else 0.0
-
-        semester_data.append({
-            "semester": semester,
-            "gpa": semester_gpa,
-            "results": semester_results
-        })
-
     context = {
         "student": student,
-        "gpa": cumulative_gpa,
-        "classification": classification,
-        "congratulations": all_passed,
-        "semester_data": semester_data,
+        "gpa": student.cumulative_gpa,
+        "classification": student.gpa_classification,
+        "congratulations": all(result.status == "PASS" for result in results),
+        "semester_data": results,
     }
     return render(request, "portal/transcript.html", context)
-
-
 # ==================== EXPORT TRANSCRIPT PDF ====================
 @login_required
 def export_transcript_pdf(request):
@@ -328,7 +241,7 @@ def export_transcript_pdf(request):
     styles = getSampleStyleSheet()
 
     # Header
-    elements.append(Paragraph("<b>MAWLLOW COLLEGE OF FORESTRY & WILDLIFE</b>", styles["Title"]))
+    elements.append(Paragraph("<b>MALAWI COLLEGE OF FORESTRY & WILDLIFE</b>", styles["Title"]))
     elements.append(Paragraph("Academic Records Office", styles["Normal"]))
     elements.append(Paragraph("Official Transcript Document", styles["Normal"]))
     elements.append(Spacer(1, 20))
@@ -351,14 +264,10 @@ def export_transcript_pdf(request):
         if not semester_results.exists():
             continue
 
-        total_points = sum((res.grade_point or 0) * res.course.credit_hours for res in semester_results)
-        total_credits = sum(res.course.credit_hours for res in semester_results if res.grade_point is not None)
-        semester_gpa = round(total_points / total_credits, 2) if total_credits else 0.0
-
-        elements.append(Paragraph(f"<b>{semester.name} — GPA: {semester_gpa}</b>", styles["Heading3"]))
+        elements.append(Paragraph(f"<b>{semester.name}</b>", styles["Heading3"]))
         elements.append(Spacer(1, 10))
 
-        data = [["Course", "Marks", "Grade", "Credits", "Remark"]]
+        data = [["Course", "Marks", "Credits", "Remark"]]
         for res in semester_results:
             remark = res.status
             if remark != "PASS":
@@ -366,7 +275,6 @@ def export_transcript_pdf(request):
             data.append([
                 res.course.name,
                 res.marks if res.marks is not None else "-",
-                res.grade_letter or "-",
                 res.course.credit_hours,
                 remark
             ])
@@ -383,10 +291,9 @@ def export_transcript_pdf(request):
         elements.append(table)
         elements.append(Spacer(1, 20))
 
-    cumulative_gpa = calculate_gpa(results)
-    classification = classify_gpa(cumulative_gpa)
-    elements.append(Paragraph(f"<b>Cumulative GPA:</b> {cumulative_gpa}", styles["Heading2"]))
-    elements.append(Paragraph(f"<b>Academic Classification:</b> {classification}", styles["Heading3"]))
+    # ✅ Use manual GPA
+    elements.append(Paragraph(f"<b>Cumulative GPA:</b> {student.cumulative_gpa or 'Not Assigned'}", styles["Heading2"]))
+    elements.append(Paragraph(f"<b>Academic Classification:</b> {student.gpa_classification}", styles["Heading3"]))
     elements.append(Spacer(1, 20))
 
     if all_passed and results.exists():
@@ -405,56 +312,71 @@ def export_transcript_pdf(request):
     response = HttpResponse(buffer, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Transcript_{student.reg_number}.pdf"'
     return response
+
 # =====================================================
 # STAFF DASHBOARD
 # =====================================================
 @login_required
 def staff_dashboard(request):
+    # ✅ Access control
     if not (hasattr(request.user, "staff") or request.user.is_superuser):
         messages.error(request, "Access denied.")
         return redirect("portal:home")
 
+    # ================= SUMMARY COUNTS =================
     total_students = Student.objects.count()
     total_courses = Course.objects.count()
     total_semesters = Semester.objects.count()
     total_results = Result.objects.count()
 
+    # ================= STUDENTS PAGINATION =================
     students_queryset = Student.objects.order_by("-id")
     students_paginator = Paginator(students_queryset, 10)
     student_page_number = request.GET.get("student_page")
     latest_students = students_paginator.get_page(student_page_number)
 
+    # ================= RESULTS PAGINATION =================
     results_queryset = Result.objects.select_related("student", "course", "semester").order_by("-id")
     results_paginator = Paginator(results_queryset, 10)
     results_page_number = request.GET.get("results_page")
     recent_results = results_paginator.get_page(results_page_number)
 
-    student_gpa_data = []
-    students = Student.objects.prefetch_related("results__course")
-    for student in students:
-        results = student.results.all()
-        total_points = sum(res.grade_point * res.course.credit_hours for res in results if res.grade_point is not None)
-        total_credits = sum(res.course.credit_hours for res in results if res.grade_point is not None)
-        gpa = round(total_points / total_credits, 2) if total_credits > 0 else 0.0
-        student_gpa_data.append({"student": student, "gpa": gpa})
+    # ================= SEMESTER GPA DATA =================
+    semester_performances = SemesterPerformance.objects.select_related("student", "semester").order_by("-id")
 
+    # ✅ Build GPA stats per student
+    student_gpa_data = [
+        {"student": s, "gpa": s.cumulative_gpa or 0.0}
+        for s in Student.objects.all()
+    ]
+
+    # Top performers and at-risk students
     top_students = sorted(student_gpa_data, key=lambda x: x["gpa"], reverse=True)[:5]
-    at_risk_students = [s for s in student_gpa_data if s["gpa"] < 1.5]
+    at_risk_students = [s for s in student_gpa_data if s["gpa"] and s["gpa"] < 1.5]
 
-    distinction_count = len([s for s in student_gpa_data if s["gpa"] >= 3.5])
-    upper_count = len([s for s in student_gpa_data if 3.0 <= s["gpa"] < 3.5])
-    lower_count = len([s for s in student_gpa_data if 2.5 <= s["gpa"] < 3.0])
-    average_count = len([s for s in student_gpa_data if 1.5 <= s["gpa"] < 2.5])
-    pass_count = len([s for s in student_gpa_data if 1.0 <= s["gpa"] < 1.5])
-    fail_count = len([s for s in student_gpa_data if s["gpa"] < 1.0])
+    # Classification counts
+    distinction_count = len([s for s in student_gpa_data if s["gpa"] and s["gpa"] >= 3.5])
+    upper_count = len([s for s in student_gpa_data if s["gpa"] and 3.0 <= s["gpa"] < 3.5])
+    lower_count = len([s for s in student_gpa_data if s["gpa"] and 2.5 <= s["gpa"] < 3.0])
+    average_count = len([s for s in student_gpa_data if s["gpa"] and 1.5 <= s["gpa"] < 2.5])
+    pass_count = len([s for s in student_gpa_data if s["gpa"] and 1.0 <= s["gpa"] < 1.5])
+    fail_count = len([s for s in student_gpa_data if s["gpa"] and s["gpa"] < 1.0])
 
+    # ================= COURSE STATS =================
     course_stats = []
     for course in Course.objects.all():
         results = Result.objects.filter(course=course)
         count = results.count()
-        avg_mark = round(sum(r.marks for r in results) / count, 2) if count else 0
-        course_stats.append({"course": course, "average_mark": avg_mark, "total_students": count})
+        avg_mark = round(
+            sum(r.marks for r in results if r.marks is not None) / count, 2
+        ) if count else 0
+        course_stats.append({
+            "course": course,
+            "average_mark": avg_mark,
+            "total_students": count
+        })
 
+    # ================= CONTEXT =================
     return render(request, "portal/staff_dashboard.html", {
         "total_students": total_students,
         "total_courses": total_courses,
@@ -462,6 +384,7 @@ def staff_dashboard(request):
         "total_results": total_results,
         "students": latest_students,
         "recent_results": recent_results,
+        "semester_performances": semester_performances,
         "top_students": top_students,
         "at_risk_students": at_risk_students,
         "course_stats": course_stats,
@@ -568,8 +491,6 @@ def student_create(request):
             return redirect("portal:student_create")
 
     return render(request, "portal/student_create.html")
-
-
 # =====================================================
 # STUDENT DETAIL (STAFF ONLY)
 # =====================================================
@@ -581,8 +502,10 @@ def student_detail(request, pk):
 
     student = get_object_or_404(Student.objects.select_related("user"), pk=pk)
     results = student.results.select_related("course", "semester")
-    gpa = calculate_gpa(results)
-    classification = classify_gpa(gpa)
+
+    # ✅ Use manual GPA field and classification property
+    gpa = student.cumulative_gpa
+    classification = student.gpa_classification
 
     return render(request, "portal/student_detail.html", {
         "student": student,
@@ -590,15 +513,13 @@ def student_detail(request, pk):
         "gpa": gpa,
         "classification": classification,
     })
-
-
 # =====================================================
 # STUDENT UPDATE (STAFF ONLY)
 # =====================================================
 @login_required
 def student_update_staff(request, pk):
     """
-    Allow staff or superusers to update a student's record.
+    Allow staff or superusers to update a student's record, including manual GPA.
     """
     if not (hasattr(request.user, "staff") or request.user.is_superuser):
         messages.error(request, "Access denied.")
@@ -611,6 +532,7 @@ def student_update_staff(request, pk):
         program = request.POST.get("program", "").strip()
         year = request.POST.get("year", "").strip()
         phone_number = request.POST.get("phone_number", "").strip()
+        gpa = request.POST.get("gpa", "").strip()   # ✅ new GPA field
 
         if not program:
             messages.error(request, "Program is required.")
@@ -621,6 +543,14 @@ def student_update_staff(request, pk):
         except ValueError:
             messages.error(request, "Year must be a valid number.")
             return redirect("portal:student_update_staff", pk=pk)
+
+        # ✅ Handle GPA input safely
+        if gpa:
+            try:
+                student.cumulative_gpa = float(gpa)
+            except ValueError:
+                messages.error(request, "GPA must be a valid number.")
+                return redirect("portal:student_update_staff", pk=pk)
 
         student.program = program
         student.year = year
@@ -658,30 +588,72 @@ def student_delete(request, pk):
 @staff_member_required
 def add_result(request):
     if request.method == "POST":
-        reg_number = request.POST.get("reg_number")
+        student_id = request.POST.get("student")
         course_id = request.POST.get("course")
         semester_id = request.POST.get("semester")
         marks = request.POST.get("marks")
+        manual_gpa = request.POST.get("manual_gpa")
 
-        student = get_object_or_404(Student, reg_number=reg_number)
+        # ✅ GPA must be provided
+        if not manual_gpa:
+            messages.error(request, "GPA is required. Please enter a value.")
+            return redirect("portal:add_result")
+
+        student = get_object_or_404(Student, id=student_id)
         course = get_object_or_404(Course, id=course_id)
         semester = get_object_or_404(Semester, id=semester_id)
+
+        defaults = {
+            "marks": float(marks) if marks else None,
+            "manual_gpa": float(manual_gpa),
+        }
 
         Result.objects.update_or_create(
             student=student,
             course=course,
             semester=semester,
-            defaults={"marks": float(marks)}
+            defaults=defaults
         )
 
         messages.success(request, "Result saved successfully.")
         return redirect("portal:staff_dashboard")
 
     return render(request, "portal/add_result.html", {
+        "students": Student.objects.all(),
         "courses": Course.objects.all(),
         "semesters": Semester.objects.all(),
     })
+# =====================================================
+# SEMESTER GPA ENTRY (STAFF ONLY)
+# =====================================================
+@staff_member_required
+def add_semester_gpa(request, student_id, semester_id):
+    student = get_object_or_404(Student, id=student_id)
+    semester = get_object_or_404(Semester, id=semester_id)
 
+    # Check if GPA record already exists
+    existing = SemesterPerformance.objects.filter(student=student, semester=semester).first()
+
+    if request.method == "POST":
+        form = SemesterPerformanceForm(request.POST, instance=existing)
+        if form.is_valid():
+            sp = form.save(commit=False)   # don’t commit yet
+            sp.student = student           # ✅ force student
+            sp.semester = semester         # ✅ force semester
+            sp.save()
+            messages.success(request, "Semester GPA saved successfully.")
+            return redirect("portal:staff_dashboard")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = SemesterPerformanceForm(instance=existing)
+
+    return render(request, "portal/add_semester_gpa.html", {
+        "form": form,
+        "student": student,
+        "semester": semester,
+        "header": f"Enter GPA for {student.reg_number} — {semester.name} ({semester.year})"
+    })
 
 # =====================================================
 # COURSE LIST
@@ -916,6 +888,107 @@ def export_excel(request):
         ])
 
     return response
+# =====================================================
+# BULK GPA UPLOAD
+# =====================================================
+@staff_member_required
+def upload_gpa(request):
+    if request.method == "POST":
+        csv_file = request.FILES.get("file")
+        if not csv_file or not csv_file.name.endswith(".csv"):
+            messages.error(request, "Please upload a valid CSV file.")
+            return redirect("portal:upload_gpa")
+
+        decoded_file = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        success_count, error_count = 0, 0
+
+        for row in reader:
+            try:
+                student = Student.objects.get(reg_number=row["reg_number"])
+                semester = Semester.objects.get(name=row["semester"])
+                SemesterPerformance.objects.update_or_create(
+                    student=student,
+                    semester=semester,
+                    defaults={"gpa": float(row["gpa"])}
+                )
+                success_count += 1
+            except Exception:
+                error_count += 1
+                continue
+
+        messages.success(request, f"GPA upload completed. Success: {success_count}, Errors: {error_count}")
+        return redirect("portal:staff_dashboard")
+
+    return render(request, "portal/upload_gpa.html")
+# =====================================================
+# DOWNLOAD GPA TEMPLATE
+# =====================================================
+@staff_member_required
+def download_gpa_template(request):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="gpa_template.csv"'
+    writer = csv.writer(response)
+    writer.writerow(["reg_number", "semester", "gpa"])
+    return response
+# =====================================================
+# GPA EXPORT
+# =====================================================
+@login_required
+def export_gpa(request):
+    if not (hasattr(request.user, "staff") or request.user.is_superuser):
+        messages.error(request, "Access denied.")
+        return redirect("portal:home")
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="gpa_export.csv"'
+    writer = csv.writer(response)
+
+    writer.writerow(["Reg Number", "Name", "Program", "Year", "Semester", "GPA"])
+
+    for sp in SemesterPerformance.objects.select_related("student__user", "semester"):
+        writer.writerow([
+            sp.student.reg_number,
+            sp.student.user.get_full_name(),
+            sp.student.program,
+            sp.student.year,
+            sp.semester.name,
+            sp.gpa
+        ])
+
+    return response
+
+# =====================================================
+# TRANSCRIPTS
+# =====================================================
+@login_required
+def transcript(request):
+    if not hasattr(request.user, "student"):
+        messages.error(request, "Access denied.")
+        return redirect("portal:home")
+
+    student = request.user.student
+
+    # Build semester data with results + GPA performance
+    semester_data = []
+    semesters = Semester.objects.all().order_by("year", "name")
+
+    for sem in semesters:
+        results = Result.objects.filter(student=student, semester=sem).select_related("course")
+        performance = SemesterPerformance.objects.filter(student=student, semester=sem).first()
+
+        if results.exists() or performance:
+            semester_data.append({
+                "semester": sem,
+                "results": results,
+                "performance": performance,
+            })
+
+    return render(request, "portal/transcript.html", {
+        "student": student,
+        "semester_data": semester_data,
+    })
 
 # =====================================================
 # SMART LOGIN REDIRECT

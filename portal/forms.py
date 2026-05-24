@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from .models import Student, Staff, Course, Semester
+from .models import Student, Staff, Course, Semester, Result, SemesterPerformance
 
 
 # =====================================================
@@ -45,7 +45,6 @@ class StudentRegistrationForm(forms.ModelForm):
             raise ValidationError("Passwords do not match.")
 
         validate_password(password1)
-
         return password2
 
     def save(self, commit=True):
@@ -60,7 +59,6 @@ class StudentRegistrationForm(forms.ModelForm):
 # STUDENT FORM (ADMIN USE)
 # =====================================================
 class StudentForm(forms.ModelForm):
-
     class Meta:
         model = Student
         fields = ["reg_number", "program", "year", "phone_number"]
@@ -105,7 +103,6 @@ class StudentUpdateForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # Get the student instance
         student = kwargs.get("instance")
         super().__init__(*args, **kwargs)
 
@@ -118,7 +115,6 @@ class StudentUpdateForm(forms.ModelForm):
         student = super().save(commit=False)
         user = student.user
 
-        # Update linked User fields
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.email = self.cleaned_data["email"]
@@ -128,11 +124,11 @@ class StudentUpdateForm(forms.ModelForm):
             student.save()
         return student
 
+
 # =====================================================
 # STAFF FORM (ADMIN USE)
 # =====================================================
 class StaffForm(forms.ModelForm):
-
     class Meta:
         model = Staff
         fields = ["staff_id", "department", "role", "phone_number"]
@@ -146,10 +142,9 @@ class StaffForm(forms.ModelForm):
 
 
 # =====================================================
-# COURSE FORM  ✅ FIXED
+# COURSE FORM
 # =====================================================
 class CourseForm(forms.ModelForm):
-
     class Meta:
         model = Course
         fields = ["name", "code", "credit_hours"]
@@ -165,7 +160,6 @@ class CourseForm(forms.ModelForm):
 # SEMESTER FORM
 # =====================================================
 class SemesterForm(forms.ModelForm):
-
     class Meta:
         model = Semester
         fields = ["name", "year"]
@@ -173,4 +167,38 @@ class SemesterForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "year": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+
+# =====================================================
+# RESULT FORM (ADMIN USE) - Marks Only
+# =====================================================
+class ResultForm(forms.ModelForm):
+    class Meta:
+        model = Result
+        fields = ["student", "course", "semester", "marks"]
+
+        widgets = {
+            "student": forms.Select(attrs={"class": "form-control"}),
+            "course": forms.Select(attrs={"class": "form-control"}),
+            "semester": forms.Select(attrs={"class": "form-control"}),
+            "marks": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        }
+
+# =====================================================
+# SEMESTER PERFORMANCE FORM (STAFF USE) - GPA Entry
+# =====================================================
+class SemesterPerformanceForm(forms.ModelForm):
+    class Meta:
+        model = SemesterPerformance
+        fields = ["gpa"]  # ✅ Only GPA is editable
+
+        widgets = {
+            "gpa": forms.NumberInput(attrs={
+                "class": "form-control",
+                "step": "0.01",
+                "min": "0.00",
+                "max": "4.00",
+                "placeholder": "Enter GPA between 0.00 and 4.00"
+            }),
         }

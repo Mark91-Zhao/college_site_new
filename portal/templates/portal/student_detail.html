@@ -7,7 +7,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'student_list' %}">Students</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ student.name }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ student.user.get_full_name }}</li>
         </ol>
     </nav>
 
@@ -20,7 +20,7 @@
             </tr>
             <tr>
                 <th scope="row">Name</th>
-                <td>{{ student.name }}</td>
+                <td>{{ student.user.get_full_name }}</td> <!-- ✅ Corrected -->
             </tr>
             <tr>
                 <th scope="row">Program</th>
@@ -32,7 +32,23 @@
             </tr>
             <tr>
                 <th scope="row">GPA</th>
-                <td>{{ student.gpa }}</td>
+                <td>
+                    {% if student.gpa %}
+                        {{ student.gpa }}
+                    {% else %}
+                        <span class="text-muted">Not Assigned</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Classification</th>
+                <td>
+                    {% if student.gpa %}
+                        {{ student.gpa_classification }}
+                    {% else %}
+                        <span class="text-muted">Not Assigned</span>
+                    {% endif %}
+                </td>
             </tr>
         </tbody>
     </table>

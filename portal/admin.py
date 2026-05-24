@@ -1,26 +1,63 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Student, Staff, Course, Semester, Result
+from django.contrib.admin import SimpleListFilter
+from .models import Student, Staff, Course, Semester, Result, SemesterPerformance
+
+# ========================= CUSTOM STATUS FILTER =========================
+class StatusFilter(SimpleListFilter):
+    title = "Status"
+    parameter_name = "status"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("Pass", "Pass"),
+            ("Supplementary", "Supplementary"),
+            ("Repeat", "Repeat"),
+            ("Pending", "Pending"),
+        ]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value:
+            ids = [obj.id for obj in queryset if obj.status == value]
+            return queryset.filter(id__in=ids)
+        return queryset
+
 
 # ========================= RESULT INLINE FOR STUDENTS =========================
 class ResultInline(admin.TabularInline):
     model = Result
     extra = 0
-    readonly_fields = ("grade_point", "status_display")  # ✅ removed grade_letter
-    fields = ("course", "semester", "marks", "grade_point", "status_display")
+    readonly_fields = ("grade_letter",)
+    fields = ("course", "semester", "marks", "grade_letter")
     can_delete = False
     show_change_link = True
 
-    def status_display(self, obj):
-        status = obj.status or "Pending"
-        if status == "PASS":
-            color = "success"
-        elif status == "UNSUPPLEMENTABLE FAIL":
-            color = "danger"
-        else:
-            color = "warning"
-        return format_html('<span class="badge bg-{}">{}</span>', color, status)
-    status_display.short_description = "Status"
+
+# ========================= SEMESTER PERFORMANCE INLINE =========================
+class SemesterPerformanceInline(admin.TabularInline):
+    model = SemesterPerformance
+    extra = 0
+    fields = ("semester", "gpa", "status_badge")
+    readonly_fields = ("status_badge",)
+    show_change_link = True
+
+    def status_badge(self, obj):
+        color_map = {
+            "Distinction": "success",      # green
+            "Upper Credit": "primary",     # dark blue
+            "Lower Credit": "info",        # light blue
+            "Average": "secondary",        # gray
+            "Pass": "teal",                # teal
+            "Repeat": "danger",            # red
+            "Pending": "warning",          # yellow
+        }
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color_map.get(obj.status, "secondary"),
+            obj.status
+        )
+    status_badge.short_description = "Classification"
 
 
 # ========================= STUDENT ADMIN =========================
@@ -31,9 +68,8 @@ class StudentAdmin(admin.ModelAdmin):
         "user_name",
         "program",
         "year",
-        "gpa_display",
+        "cumulative_gpa",
         "classification_display",
-        "withdrawn_display",
         "phone_number_display",
     )
     search_fields = (
@@ -46,143 +82,76 @@ class StudentAdmin(admin.ModelAdmin):
     )
     list_filter = ("year", "program")
     ordering = ("reg_number",)
-    inlines = [ResultInline]
+    inlines = [ResultInline, SemesterPerformanceInline]
+    fields = ("user", "reg_number", "program", "year", "phone_number")
 
     def user_name(self, obj):
         return obj.user.get_full_name()
     user_name.short_description = "Student Name"
 
-    def gpa_display(self, obj):
-        return obj.gpa
-    gpa_display.short_description = "GPA"
-
     def classification_display(self, obj):
         return obj.gpa_classification
     classification_display.short_description = "Classification"
 
-    def withdrawn_display(self, obj):
-        return obj.is_withdrawn
-    withdrawn_display.short_description = "Withdrawn"
-
     def phone_number_display(self, obj):
         return obj.phone_number or "N/A"
     phone_number_display.short_description = "Phone"
-
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        student = self.get_object(request, object_id)
-        if not student:
-            return super().change_view(request, object_id, form_url, extra_context=extra_context)
-
-        results = student.results.all()
-        passed = sum(1 for r in results if r.status == "PASS")
-        failed = sum(1 for r in results if r.status == "UNSUPPLEMENTABLE FAIL")
-        repeat = sum(1 for r in results if r.status == "REPEAT COURSE")
-
-        gpa = student.gpa if student.gpa is not None else "N/A"
-        classification = student.gpa_classification or "N/A"
-        withdrawn = "Yes" if student.is_withdrawn else "No"
-
-        mini_dashboard = format_html(
-            """
-            <div style="padding:10px;margin-bottom:20px;border:1px solid #ddd;border-radius:5px;background:#f9f9f9;">
-                <h3>🎓 Student Summary</h3>
-                <p><strong>GPA:</strong> {} | <strong>Classification:</strong> {} | <strong>Withdrawn:</strong> {}</p>
-                <p>✅ Passed: {} | ❌ Failed: {} | 🔁 Repeat: {}</p>
-            </div>
-            """,
-            gpa, classification, withdrawn, passed, failed, repeat,
-        )
-        extra_context = extra_context or {}
-        extra_context["mini_dashboard"] = mini_dashboard
-        return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
 
 # ========================= STAFF ADMIN =========================
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ("staff_id", "user_name", "department", "role", "phone_number_display")
-    search_fields = ("staff_id", "user__username", "user__email", "phone_number")
+    list_display = ("staff_id", "user", "department", "role")
+    search_fields = ("staff_id", "user__first_name", "user__last_name", "department")
     list_filter = ("department", "role")
-    ordering = ("staff_id",)
-
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        staff = self.get_object(request, object_id)
-        if not staff:
-            return super().change_view(request, object_id, form_url, extra_context=extra_context)
-
-        students_count = Student.objects.filter(program=staff.department).count()
-        results_count = Result.objects.filter(student__program=staff.department).count()
-
-        mini_dashboard = format_html(
-            """
-            <div style="padding:10px;margin-bottom:20px;border:1px solid #ddd;border-radius:5px;background:#f0f8ff;">
-                <h3>🧑‍🏫 Staff Summary</h3>
-                <p>👨‍🎓 Students Managed: {}</p>
-                <p>📊 Results Entered: {}</p>
-            </div>
-            """,
-            students_count, results_count,
-        )
-        extra_context = extra_context or {}
-        extra_context["mini_dashboard"] = mini_dashboard
-        return super().change_view(request, object_id, form_url, extra_context=extra_context)
-
-    def user_name(self, obj):
-        return obj.user.get_full_name()
-    user_name.short_description = "Staff Name"
-
-    def phone_number_display(self, obj):
-        return obj.phone_number or "N/A"
-    phone_number_display.short_description = "Phone"
-
-
-# ========================= COURSE ADMIN =========================
-@admin.register(Course)
-class CourseAdmin(admin.ModelAdmin):
-    list_display = ("name", "credit_hours")
-    search_fields = ("name",)
-    ordering = ("name",)
 
 
 # ========================= SEMESTER ADMIN =========================
 @admin.register(Semester)
 class SemesterAdmin(admin.ModelAdmin):
     list_display = ("name", "year")
+    search_fields = ("name",)
     list_filter = ("year",)
-    ordering = ("-year",)
+    fields = ("name", "year")
+
+
+# ========================= COURSE ADMIN =========================
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "credit_hours", "semester")
+    search_fields = ("code", "name")
+    list_filter = ("semester",)
 
 
 # ========================= RESULT ADMIN =========================
 @admin.register(Result)
 class ResultAdmin(admin.ModelAdmin):
-    list_display = (
-        "student_name",
-        "course",
-        "semester",
-        "marks",
-        "grade_point",   # ✅ replaced grade_letter
-        "status_badge",
-    )
-    search_fields = ("student__reg_number", "student__user__username", "course__name")
-    list_filter = ("semester", "course")
-    ordering = ("-semester",)
-    readonly_fields = ("grade_point", "status_display")  # ✅ removed grade_letter
+    list_display = ("student", "course", "semester", "marks", "grade_letter")
+    list_editable = ("marks",)
+    search_fields = ("student__reg_number", "course__code", "semester__name")
+    list_filter = ("semester",)
 
-    def student_name(self, obj):
-        return obj.student.user.get_full_name()
-    student_name.short_description = "Student"
 
-    def status_display(self, obj):
-        status = obj.status or "Pending"
-        if status == "PASS":
-            color = "success"
-        elif status == "UNSUPPLEMENTABLE FAIL":
-            color = "danger"
-        else:
-            color = "warning"
-        return format_html('<span class="badge bg-{}">{}</span>', color, status)
-    status_display.short_description = "Status"
+# ========================= SEMESTER PERFORMANCE ADMIN =========================
+@admin.register(SemesterPerformance)
+class SemesterPerformanceAdmin(admin.ModelAdmin):
+    list_display = ("student", "semester", "gpa", "status_badge")
+    search_fields = ("student__reg_number", "semester__name")
+    list_filter = ("semester", "status")
 
     def status_badge(self, obj):
-        return self.status_display(obj)
-    status_badge.short_description = "Status"
+        color_map = {
+            "Distinction": "success",
+            "Upper Credit": "primary",
+            "Lower Credit": "info",
+            "Average": "secondary",
+            "Pass": "teal",
+            "Repeat": "danger",
+            "Pending": "warning",
+        }
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color_map.get(obj.status, "secondary"),
+            obj.status
+        )
+    status_badge.short_description = "Classification"

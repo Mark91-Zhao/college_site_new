@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Add Semester GPA{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <!-- Page Header -->
+    <h2>{{ header }}</h2>
+    <hr>
+
+    <!-- GPA Entry Form -->
+    <form method="POST">
+        {% csrf_token %}
+        
+        <!-- Student (read-only) -->
+        <div class="mb-3">
+            <label class="form-label">Student</label>
+            <input type="text" class="form-control" 
+                   value="{{ student.user.get_full_name }} ({{ student.reg_number }})" readonly>
+        </div>
+
+        <!-- Semester (read-only) -->
+        <div class="mb-3">
+            <label class="form-label">Semester</label>
+            <input type="text" class="form-control" 
+                   value="{{ semester.name }} ({{ semester.year }})" readonly>
+        </div>
+
+        <!-- GPA (required) -->
+        <div class="mb-3">
+            <label class="form-label">GPA</label>
+            {{ form.gpa }}
+            <small class="text-muted">Enter GPA between 0.00 and 4.00</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save GPA</button>
+        <a href="{% url 'portal:staff_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+{% endblock %}

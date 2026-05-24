@@ -7,6 +7,7 @@
 <div class="container mt-4">
     <h2 class="mb-4 text-center">🎓 Academic Transcript</h2>
 
+    <!-- Student Info -->
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-info text-white">
             <h5>Student Information</h5>
@@ -19,19 +20,24 @@
         </div>
     </div>
 
+    <!-- Semester Results -->
     {% for sem in semester_data %}
         <div class="card mb-3 shadow-sm">
             <div class="card-header bg-light fw-bold">
-                {{ sem.semester.name }} — GPA: {{ sem.gpa }}
+                {{ sem.semester.name }} ({{ sem.semester.year }})
             </div>
             <div class="card-body">
+
+                <!-- Semester GPA -->
+                <p><strong>Semester GPA:</strong> {{ sem.performance.gpa|default:"Not Assigned" }}</p>
+
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
                             <th>Course</th>
                             <th>Marks</th>
-                            <th>Grade</th>
                             <th>Credits</th>
+                            <th>Grade</th>
                             <th>Remark</th>
                         </tr>
                     </thead>
@@ -40,15 +46,15 @@
                             <tr>
                                 <td>{{ res.course.name }}</td>
                                 <td>{{ res.marks|default:"-" }}</td>
-                                <td>{{ res.grade_letter|default:"-" }}</td>
                                 <td>{{ res.course.credit_hours }}</td>
+                                <td>{{ res.grade_letter|default:"-" }}</td>
                                 <td>
                                     {% if res.status == "PASS" %}
                                         <span class="text-success">PASS</span>
-                                    {% elif res.status == "REPEAT COURSE" %}
-                                        <span class="text-warning">REPEAT</span>
-                                    {% elif res.status == "UNSUPPLEMENTABLE FAIL" %}
-                                        <span class="text-danger">FAIL</span>
+                                    {% elif res.status == "REPEAT" %}
+                                        <span class="text-danger">REPEAT</span>
+                                    {% elif res.status == "SUPPLEMENTARY" %}
+                                        <span class="text-warning">SUPPLEMENTARY</span>
                                     {% else %}
                                         <span class="text-secondary">PENDING</span>
                                     {% endif %}
@@ -63,12 +69,14 @@
         <p class="text-muted">No results available.</p>
     {% endfor %}
 
+    <!-- Cumulative GPA -->
     <div class="mt-4">
-        <h5>Cumulative GPA: <strong>{{ gpa }}</strong></h5>
-        <h5>Academic Classification: <strong>{{ classification }}</strong></h5>
-        {% if congratulations %}
-            <p class="text-success">🎉 Well done! You passed all courses.</p>
-        {% endif %}
+        <h5>Cumulative GPA: 
+            <strong>{{ student.cumulative_gpa|default:"Not Assigned" }}</strong>
+        </h5>
+        <h5>Academic Classification: 
+            <strong>{{ student.gpa_classification|default:"Not Assigned" }}</strong>
+        </h5>
     </div>
 </div>
 {% endblock %}

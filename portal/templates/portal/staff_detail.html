@@ -7,7 +7,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'staff_list' %}">Staff</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ staff.name }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ staff.user.get_full_name }}</li>
         </ol>
     </nav>
 
@@ -19,8 +19,12 @@
                 <td>{{ staff.id }}</td>
             </tr>
             <tr>
+                <th scope="row">Staff ID</th>
+                <td>{{ staff.staff_id }}</td>
+            </tr>
+            <tr>
                 <th scope="row">Name</th>
-                <td>{{ staff.name }}</td>
+                <td>{{ staff.user.get_full_name }}</td> <!-- ✅ Corrected -->
             </tr>
             <tr>
                 <th scope="row">Department</th>
@@ -29,6 +33,10 @@
             <tr>
                 <th scope="row">Role</th>
                 <td>{{ staff.role }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Phone Number</th>
+                <td>{{ staff.phone_number }}</td>
             </tr>
         </tbody>
     </table>
