@@ -335,26 +335,36 @@ def staff_dashboard(request):
     student_page_number = request.GET.get("student_page")
     latest_students = students_paginator.get_page(student_page_number)
 
-    # ================= RESULTS PAGINATION =================
-    results_queryset = Result.objects.select_related("student", "course", "semester").order_by("-id")
-    results_paginator = Paginator(results_queryset, 10)
-    results_page_number = request.GET.get("results_page")
-    recent_results = results_paginator.get_page(results_page_number)
+    # ================= RESULTS GROUPED BY SEMESTER =================
+    student_search = request.GET.get("student_search", "").strip().lower()
+    course_search = request.GET.get("course_search", "").strip().lower()
+
+    semesters = Semester.objects.prefetch_related("results").order_by("year", "name")
+    for semester in semesters:
+        results = semester.results.select_related("student", "course")
+        if student_search:
+            results = results.filter(
+                Q(student__reg_number__icontains=student_search) |
+                Q(student__user__first_name__icontains=student_search) |
+                Q(student__user__last_name__icontains=student_search)
+            )
+        if course_search:
+            results = results.filter(
+                Q(course__code__icontains=course_search) |
+                Q(course__name__icontains=course_search)
+            )
+        semester.filtered_results = results
 
     # ================= SEMESTER GPA DATA =================
     semester_performances = SemesterPerformance.objects.select_related("student", "semester").order_by("-id")
 
-    # ✅ Build GPA stats per student
     student_gpa_data = [
         {"student": s, "gpa": s.cumulative_gpa or 0.0}
         for s in Student.objects.all()
     ]
-
-    # Top performers and at-risk students
     top_students = sorted(student_gpa_data, key=lambda x: x["gpa"], reverse=True)[:5]
     at_risk_students = [s for s in student_gpa_data if s["gpa"] and s["gpa"] < 1.5]
 
-    # Classification counts
     distinction_count = len([s for s in student_gpa_data if s["gpa"] and s["gpa"] >= 3.5])
     upper_count = len([s for s in student_gpa_data if s["gpa"] and 3.0 <= s["gpa"] < 3.5])
     lower_count = len([s for s in student_gpa_data if s["gpa"] and 2.5 <= s["gpa"] < 3.0])
@@ -364,16 +374,22 @@ def staff_dashboard(request):
 
     # ================= COURSE STATS =================
     course_stats = []
-    for course in Course.objects.all():
-        results = Result.objects.filter(course=course)
-        count = results.count()
-        avg_mark = round(
-            sum(r.marks for r in results if r.marks is not None) / count, 2
-        ) if count else 0
+    for semester in Semester.objects.prefetch_related("courses").order_by("year", "name"):
+        semester_courses = []
+        for course in semester.courses.all():
+            results = Result.objects.filter(course=course)
+            count = results.count()
+            avg_mark = round(
+                sum(r.marks for r in results if r.marks is not None) / count, 2
+            ) if count else 0
+            semester_courses.append({
+                "course": course,
+                "average_mark": avg_mark,
+                "total_students": count
+            })
         course_stats.append({
-            "course": course,
-            "average_mark": avg_mark,
-            "total_students": count
+            "semester": semester,
+            "courses": semester_courses
         })
 
     # ================= CONTEXT =================
@@ -383,7 +399,7 @@ def staff_dashboard(request):
         "total_semesters": total_semesters,
         "total_results": total_results,
         "students": latest_students,
-        "recent_results": recent_results,
+        "semesters": semesters,
         "semester_performances": semester_performances,
         "top_students": top_students,
         "at_risk_students": at_risk_students,
@@ -594,7 +610,7 @@ def add_result(request):
         marks = request.POST.get("marks")
         manual_gpa = request.POST.get("manual_gpa")
 
-        # ✅ GPA must be provided
+        # GPA must be provided manually
         if not manual_gpa:
             messages.error(request, "GPA is required. Please enter a value.")
             return redirect("portal:add_result")
@@ -618,11 +634,19 @@ def add_result(request):
         messages.success(request, "Result saved successfully.")
         return redirect("portal:staff_dashboard")
 
+    # ✅ Only show courses for the selected semester
+    semester_id = request.GET.get("semester")
+    if semester_id:
+        courses = Course.objects.filter(semester_id=semester_id)
+    else:
+        courses = Course.objects.none()  # empty until semester chosen
+
     return render(request, "portal/add_result.html", {
         "students": Student.objects.all(),
-        "courses": Course.objects.all(),
+        "courses": courses,
         "semesters": Semester.objects.all(),
     })
+
 # =====================================================
 # SEMESTER GPA ENTRY (STAFF ONLY)
 # =====================================================
@@ -660,13 +684,18 @@ def add_semester_gpa(request, student_id, semester_id):
 # =====================================================
 @login_required
 def course_list(request):
+    # ✅ Access control
     if not (hasattr(request.user, "staff") or request.user.is_superuser):
         messages.error(request, "Access denied.")
         return redirect("portal:home")
 
-    courses = Course.objects.all()
-    return render(request, "portal/course_list.html", {"courses": courses})
+    # ================= COURSE LIST BY SEMESTER =================
+    # Group courses by semester, ordered by year then name
+    semesters = Semester.objects.prefetch_related("courses").order_by("year", "name")
 
+    return render(request, "portal/course_list.html", {
+        "semesters": semesters
+    })
 
 # =====================================================
 # COURSE CREATE
@@ -989,6 +1018,50 @@ def transcript(request):
         "student": student,
         "semester_data": semester_data,
     })
+
+# =====================================================
+# STUDENT UPDATE(SELF)
+# =====================================================
+@login_required
+def student_update_self(request, pk):
+    student = get_object_or_404(Student, pk=pk, user=request.user)
+
+    if request.method == "POST":
+        form = StudentUpdateForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect("portal:student_dashboard")
+    else:
+        form = StudentUpdateForm(instance=student)
+
+    semesters = Semester.objects.order_by("year", "name")
+    semester_performances = SemesterPerformance.objects.filter(student=student).select_related("semester")
+    semester_data = Result.objects.filter(student=student).select_related("course", "semester")
+
+    return render(request, "portal/student_dashboard.html", {
+        "student": student,
+        "form": form,
+        "semesters": semesters,
+        "semester_performances": semester_performances,
+        "semester_data": semester_data,
+    })
+
+# =====================================================
+# AJAX HELPERS
+# =====================================================
+from django.http import JsonResponse
+
+@login_required
+def get_courses_by_semester(request, semester_id):
+    # ✅ Restrict access to staff or superuser
+    if not (hasattr(request.user, "staff") or request.user.is_superuser):
+        return JsonResponse({"error": "Access denied"}, status=403)
+
+    courses = Course.objects.filter(semester_id=semester_id).order_by("code")
+    data = [{"id": c.id, "code": c.code, "name": c.name} for c in courses]
+    return JsonResponse(data, safe=False)
+
 
 # =====================================================
 # SMART LOGIN REDIRECT

@@ -74,4 +74,14 @@ urlpatterns = [
     # =====================================================
     path("student/login/", views.student_login, name="student_login"),
     path("staff/login/", views.staff_login, name="staff_login"),
+
+    # =====================================================
+    # AJAX HELPERS
+    # =====================================================
+    path("get_courses/<int:semester_id>/", views.get_courses_by_semester, name="get_courses_by_semester"),
+
+# =====================================================
+# STUDENT SELF-UPDATE (Student Dashboard)
+# =====================================================
+path("student/update/<int:pk>/", views.student_update_self, name="student_update_self"),
 ]

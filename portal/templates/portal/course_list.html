@@ -7,41 +7,50 @@
     </div>
     <p class="lead">Manage course records here.</p>
 
-    <table class="table table-striped table-hover mt-3">
-        <thead class="table-success">
-            <tr>
-                <th>ID</th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Credit Hours</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for course in courses %}
-            <tr>
-                <td>{{ course.id }}</td>
-                <td>{{ course.code }}</td>
-                <td>{{ course.name }}</td>
-                <td>{{ course.credit_hours }}</td>
-                <td>
-                    <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-info" title="View">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{% url 'course_edit' course.id %}" class="btn btn-sm btn-warning" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <a href="{% url 'course_delete' course.id %}" class="btn btn-sm btn-danger" title="Delete">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center">No courses found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% for semester in semesters %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                {{ semester.name }} ({{ semester.year }})
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead class="table-success">
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Credit Hours</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in semester.course_set.all %}
+                            <tr>
+                                <td>{{ course.id }}</td>
+                                <td>{{ course.code }}</td>
+                                <td>{{ course.name }}</td>
+                                <td>{{ course.credit_hours }}</td>
+                                <td>
+                                    <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-info" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'course_edit' course.id %}" class="btn btn-sm btn-warning" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'course_delete' course.id %}" class="btn btn-sm btn-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No courses in this semester.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

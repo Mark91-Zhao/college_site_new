@@ -17,23 +17,22 @@
             </select>
         </div>
 
-        <!-- Course Selection -->
-        <div class="mb-3">
-            <label for="course" class="form-label">Course</label>
-            <select name="course" id="course" class="form-select" required>
-                {% for course in courses %}
-                <option value="{{ course.id }}">{{ course.code }} — {{ course.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
         <!-- Semester Selection -->
         <div class="mb-3">
             <label for="semester" class="form-label">Semester</label>
             <select name="semester" id="semester" class="form-select" required>
+                <option value="">-- Select Semester --</option>
                 {% for semester in semesters %}
                 <option value="{{ semester.id }}">{{ semester.name }} ({{ semester.year }})</option>
                 {% endfor %}
+            </select>
+        </div>
+
+        <!-- Course Selection (filtered by semester) -->
+        <div class="mb-3">
+            <label for="course" class="form-label">Course</label>
+            <select name="course" id="course" class="form-select" required>
+                <!-- Options will be populated dynamically -->
             </select>
         </div>
 
@@ -57,5 +56,33 @@
         </button>
     </form>
 </div>
+
+<!-- ✅ AJAX script to filter courses -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const semesterSelect = document.getElementById("semester");
+    const courseSelect = document.getElementById("course");
+
+    semesterSelect.addEventListener("change", function() {
+        const semesterId = this.value;
+        if (!semesterId) {
+            courseSelect.innerHTML = "";
+            return;
+        }
+
+        fetch(`/portal/get_courses/${semesterId}/`)
+            .then(response => response.json())
+            .then(data => {
+                courseSelect.innerHTML = "";
+                data.forEach(course => {
+                    const option = document.createElement("option");
+                    option.value = course.id;
+                    option.textContent = `${course.code} — ${course.name}`;
+                    courseSelect.appendChild(option);
+                });
+            });
+    });
+});
+</script>
 
 {% endblock %}

@@ -79,7 +79,7 @@
                 </table>
             </div>
             <div id="profileForm" style="display:none;">
-                <form method="POST" action="{% url 'portal:student_dashboard' %}">
+                <form method="POST" action="{% url 'portal:student_update_self' student.id %}">
                     {% csrf_token %}
                     {{ form.as_table }}
                     <button type="submit" class="btn btn-primary">Save</button>
