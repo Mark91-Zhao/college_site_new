@@ -57,8 +57,21 @@ urlpatterns = [
     # =====================================================
     # ACADEMIC OPERATIONS
     # =====================================================
-    path("staff/add-result/", views.add_result, name="add_result"),
-    path("staff/add-semester-gpa/<int:student_id>/<int:semester_id>/", views.add_semester_gpa, name="add_semester_gpa"),
+    path(
+        "staff/add-result/<int:student_id>/<int:semester_id>/",
+        views.add_result,
+        name="add_result"
+    ),
+    path(
+        "staff/add-result/semester/<int:semester_id>/",
+        views.add_result_semester,
+        name="add_result_semester"
+    ),
+    path(
+        "staff/add-semester-gpa/<int:student_id>/<int:semester_id>/",
+        views.add_semester_gpa,
+        name="add_semester_gpa"
+    ),
     path("upload-results/", views.upload_results, name="upload_results"),
     path("download-template/", views.download_results_template, name="download_results_template"),
     path("staff/export-excel/", views.export_excel, name="export_excel"),
@@ -80,8 +93,8 @@ urlpatterns = [
     # =====================================================
     path("get_courses/<int:semester_id>/", views.get_courses_by_semester, name="get_courses_by_semester"),
 
-# =====================================================
-# STUDENT SELF-UPDATE (Student Dashboard)
-# =====================================================
-path("student/update/<int:pk>/", views.student_update_self, name="student_update_self"),
+    # =====================================================
+    # STUDENT SELF-UPDATE (Student Dashboard)
+    # =====================================================
+    path("student/update/<int:pk>/", views.student_update_self, name="student_update_self"),
 ]

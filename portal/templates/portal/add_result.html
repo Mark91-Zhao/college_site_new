@@ -7,32 +7,23 @@
     <form method="POST">
         {% csrf_token %}
 
-        <!-- Student Selection -->
-        <div class="mb-3">
-            <label for="student" class="form-label">Student (Registration Number)</label>
-            <select name="student" id="student" class="form-select" required>
-                {% for student in students %}
-                <option value="{{ student.id }}">{{ student.reg_number }} — {{ student.user.get_full_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <!-- Hidden Student & Semester -->
+        <input type="hidden" name="student" value="{{ student.id }}">
+        <input type="hidden" name="semester" value="{{ semester.id }}">
 
-        <!-- Semester Selection -->
+        <!-- Display context info -->
         <div class="mb-3">
-            <label for="semester" class="form-label">Semester</label>
-            <select name="semester" id="semester" class="form-select" required>
-                <option value="">-- Select Semester --</option>
-                {% for semester in semesters %}
-                <option value="{{ semester.id }}">{{ semester.name }} ({{ semester.year }})</option>
-                {% endfor %}
-            </select>
+            <p><strong>Student:</strong> {{ student.reg_number }} — {{ student.user.get_full_name }}</p>
+            <p><strong>Semester:</strong> {{ semester.name }} ({{ semester.year }})</p>
         </div>
 
         <!-- Course Selection (filtered by semester) -->
         <div class="mb-3">
             <label for="course" class="form-label">Course</label>
             <select name="course" id="course" class="form-select" required>
-                <!-- Options will be populated dynamically -->
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.code }} — {{ course.name }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -56,33 +47,5 @@
         </button>
     </form>
 </div>
-
-<!-- ✅ AJAX script to filter courses -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const semesterSelect = document.getElementById("semester");
-    const courseSelect = document.getElementById("course");
-
-    semesterSelect.addEventListener("change", function() {
-        const semesterId = this.value;
-        if (!semesterId) {
-            courseSelect.innerHTML = "";
-            return;
-        }
-
-        fetch(`/portal/get_courses/${semesterId}/`)
-            .then(response => response.json())
-            .then(data => {
-                courseSelect.innerHTML = "";
-                data.forEach(course => {
-                    const option = document.createElement("option");
-                    option.value = course.id;
-                    option.textContent = `${course.code} — ${course.name}`;
-                    courseSelect.appendChild(option);
-                });
-            });
-    });
-});
-</script>
 
 {% endblock %}

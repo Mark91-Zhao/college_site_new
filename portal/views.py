@@ -173,19 +173,32 @@ def student_dashboard(request):
         return redirect("portal:home")
 
     student = get_or_create_student(request.user)
-    results = student.results.select_related("semester", "course").all()
-    semesters = Semester.objects.order_by("year", "name")
+
+    # All results for this student
+    results = Result.objects.filter(student=student).select_related("semester", "course")
+
+    # Only semesters where this student has results
+    my_semesters = Semester.objects.filter(results__student=student).distinct().order_by("year", "name")
+
+    # GPA records for this student
+    semester_performances = SemesterPerformance.objects.filter(student=student)
+
+    # Attach results + GPA to each semester object
+    for sem in my_semesters:
+        sem.my_results = [r for r in results if r.semester_id == sem.id]
+        sp = semester_performances.filter(semester=sem).first()
+        sem.my_gpa = sp.gpa if sp else None
 
     form = StudentUpdateForm(instance=student)
 
     context = {
         "student": student,
         "form": form,
-        "gpa": student.cumulative_gpa,
+        "cumulative_gpa": student.cumulative_gpa,
         "academic_status": student.gpa_classification,
-        "congratulations": all(result.status == "Pass" for result in results),
-        "semester_data": results,
-        "semesters": semesters,  # ✅ added
+        "my_semesters": my_semesters,
+        "total_my_courses": results.values("course").distinct().count(),
+        "total_my_results": results.count(),
     }
     return render(request, "portal/student_dashboard.html", context)
 
@@ -597,27 +610,25 @@ def student_delete(request, pk):
 
     return render(request, "portal/student_delete.html", {"student": student})
 
-
 # =====================================================
 # ADD RESULT (STAFF ONLY)
 # =====================================================
 @staff_member_required
-def add_result(request):
+def add_result(request, student_id, semester_id):
+    student = get_object_or_404(Student, id=student_id)
+    semester = get_object_or_404(Semester, id=semester_id)
+
     if request.method == "POST":
-        student_id = request.POST.get("student")
         course_id = request.POST.get("course")
-        semester_id = request.POST.get("semester")
         marks = request.POST.get("marks")
         manual_gpa = request.POST.get("manual_gpa")
 
         # GPA must be provided manually
         if not manual_gpa:
             messages.error(request, "GPA is required. Please enter a value.")
-            return redirect("portal:add_result")
+            return redirect("portal:add_result", student_id=student.id, semester_id=semester.id)
 
-        student = get_object_or_404(Student, id=student_id)
         course = get_object_or_404(Course, id=course_id)
-        semester = get_object_or_404(Semester, id=semester_id)
 
         defaults = {
             "marks": float(marks) if marks else None,
@@ -635,17 +646,60 @@ def add_result(request):
         return redirect("portal:staff_dashboard")
 
     # ✅ Only show courses for the selected semester
-    semester_id = request.GET.get("semester")
-    if semester_id:
-        courses = Course.objects.filter(semester_id=semester_id)
-    else:
-        courses = Course.objects.none()  # empty until semester chosen
+    courses = Course.objects.filter(semester=semester)
 
     return render(request, "portal/add_result.html", {
-        "students": Student.objects.all(),
+        "student": student,
+        "semester": semester,
         "courses": courses,
-        "semesters": Semester.objects.all(),
     })
+# =====================================================
+# ADD RESULT (SEMESTER)
+# =====================================================
+@staff_member_required
+def add_result_semester(request, semester_id):
+    semester = get_object_or_404(Semester, id=semester_id)
+    courses = Course.objects.filter(semester=semester)
+    students = Student.objects.all()
+
+    if request.method == "POST":
+        student_id = request.POST.get("student")
+        gpa = request.POST.get("gpa")
+
+        if not student_id:
+            messages.error(request, "Please select a student.")
+            return redirect("portal:add_result_semester", semester_id=semester.id)
+
+        student = get_object_or_404(Student, id=student_id)
+
+        # ✅ Save cumulative GPA once per student per semester
+        if gpa:
+            SemesterPerformance.objects.update_or_create(
+                student=student,
+                semester=semester,
+                defaults={"gpa": float(gpa)}
+            )
+
+        # ✅ Save marks for each course
+        for course in courses:
+            marks = request.POST.get(f"marks_{course.id}")
+            if marks:
+                Result.objects.update_or_create(
+                    student=student,
+                    course=course,
+                    semester=semester,
+                    defaults={"marks": float(marks)}
+                )
+
+        messages.success(request, f"Results and GPA saved for {student.reg_number} in {semester.name}.")
+        return redirect("portal:staff_dashboard")
+
+    return render(request, "portal/add_result_semester.html", {
+        "semester": semester,
+        "students": students,
+        "courses": courses,
+    })
+
 
 # =====================================================
 # SEMESTER GPA ENTRY (STAFF ONLY)
