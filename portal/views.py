@@ -14,7 +14,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from .forms import StudentUpdateForm
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, models
+from django.db.models import Q
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 
@@ -38,7 +39,6 @@ def is_student(user):
 def is_staff_member(user):
     return user.is_authenticated and hasattr(user, "staff")
 
-
 # =====================================================
 # HOME
 # =====================================================
@@ -60,15 +60,14 @@ def home(request):
         return render(request, "portal/home.html", {
             "role": "student",
             "student": student,
-            "gpa": student.cumulative_gpa,   # ✅ FIXED
+            "gpa": student.cumulative_gpa,
             "classification": student.gpa_classification,
         })
 
     return render(request, "portal/home.html", {"role": "guest"})
 
-
 # =====================================================
-# LOGIN VIEWS
+# LOGIN VIEWS - FIXED TEMPLATE PATHS
 # =====================================================
 def student_login(request):
     if request.method == "POST":
@@ -81,9 +80,10 @@ def student_login(request):
                 return redirect("portal:student_dashboard")
             else:
                 messages.error(request, "This account is not a student account.")
-                return redirect("student_login")
-    return render(request, "registration/student_login.html")
-
+                return redirect("portal:student_login")
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, "portal/student_login.html")
 
 def staff_login(request):
     if request.method == "POST":
@@ -91,14 +91,15 @@ def staff_login(request):
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
         if user:
-            if is_staff_member(user):
+            if is_staff_member(user) or user.is_superuser:
                 login(request, user)
                 return redirect("portal:staff_dashboard")
             else:
                 messages.error(request, "This account is not a staff account.")
-                return redirect("staff_login")
-    return render(request, "registration/staff_login.html")
-
+                return redirect("portal:staff_login")
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, "portal/staff_login.html")
 
 # =====================================================
 # STUDENT REGISTRATION
