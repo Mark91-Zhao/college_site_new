@@ -332,81 +332,58 @@ def export_transcript_pdf(request):
 # =====================================================
 @login_required
 def staff_dashboard(request):
-    # ✅ Access control
     if not (hasattr(request.user, "staff") or request.user.is_superuser):
         messages.error(request, "Access denied.")
         return redirect("portal:home")
 
-    # ================= SUMMARY COUNTS =================
     total_students = Student.objects.count()
     total_courses = Course.objects.count()
     total_semesters = Semester.objects.count()
     total_results = Result.objects.count()
 
-    # ================= STUDENTS PAGINATION =================
-    students_queryset = Student.objects.order_by("-id")
+    # Students - paginated (10 only, not all)
+    students_queryset = Student.objects.select_related("user").order_by("-id")
     students_paginator = Paginator(students_queryset, 10)
-    student_page_number = request.GET.get("student_page")
-    latest_students = students_paginator.get_page(student_page_number)
+    latest_students = students_paginator.get_page(request.GET.get("student_page"))
 
-    # ================= RESULTS GROUPED BY SEMESTER =================
-    student_search = request.GET.get("student_search", "").strip().lower()
-    course_search = request.GET.get("course_search", "").strip().lower()
-
-    semesters = Semester.objects.prefetch_related("results").order_by("year", "name")
+    # Results - DO NOT load all at once. Load only 50 latest
+    from django.db.models import Avg
+    semesters = Semester.objects.order_by("year", "name")[:10]  # limit semesters
     for semester in semesters:
-        results = semester.results.select_related("student", "course")
-        if student_search:
-            results = results.filter(
-                Q(student__reg_number__icontains=student_search) |
-                Q(student__user__first_name__icontains=student_search) |
-                Q(student__user__last_name__icontains=student_search)
-            )
-        if course_search:
-            results = results.filter(
-                Q(course__code__icontains=course_search) |
-                Q(course__name__icontains=course_search)
-            )
+        results = Result.objects.filter(semester=semester).select_related("student__user", "course")[:50]
         semester.filtered_results = results
 
-    # ================= SEMESTER GPA DATA =================
-    semester_performances = SemesterPerformance.objects.select_related("student", "semester").order_by("-id")
+    # GPA stats - optimized, don't load full student objects
+    semester_performances = SemesterPerformance.objects.select_related("student__user", "semester").order_by("-id")[:20]
 
-    student_gpa_data = [
-        {"student": s, "gpa": s.cumulative_gpa or 0.0}
-        for s in Student.objects.all()
-    ]
-    top_students = sorted(student_gpa_data, key=lambda x: x["gpa"], reverse=True)[:5]
-    at_risk_students = [s for s in student_gpa_data if s["gpa"] and s["gpa"] < 1.5]
+    # Simple counts using DB, not Python loops
+    distinction_count = SemesterPerformance.objects.filter(gpa__gte=3.5).count()
+    upper_count = SemesterPerformance.objects.filter(gpa__gte=3.0, gpa__lt=3.5).count()
+    lower_count = SemesterPerformance.objects.filter(gpa__gte=2.5, gpa__lt=3.0).count()
+    average_count = SemesterPerformance.objects.filter(gpa__gte=1.5, gpa__lt=2.5).count()
+    pass_count = SemesterPerformance.objects.filter(gpa__gte=1.0, gpa__lt=1.5).count()
+    fail_count = SemesterPerformance.objects.filter(gpa__lt=1.0).count()
 
-    distinction_count = len([s for s in student_gpa_data if s["gpa"] and s["gpa"] >= 3.5])
-    upper_count = len([s for s in student_gpa_data if s["gpa"] and 3.0 <= s["gpa"] < 3.5])
-    lower_count = len([s for s in student_gpa_data if s["gpa"] and 2.5 <= s["gpa"] < 3.0])
-    average_count = len([s for s in student_gpa_data if s["gpa"] and 1.5 <= s["gpa"] < 2.5])
-    pass_count = len([s for s in student_gpa_data if s["gpa"] and 1.0 <= s["gpa"] < 1.5])
-    fail_count = len([s for s in student_gpa_data if s["gpa"] and s["gpa"] < 1.0])
+    # Top 5 students - use DB ordering
+    top_performances = SemesterPerformance.objects.select_related("student__user").order_by("-gpa")[:5]
+    top_students = [{"student": p.student, "gpa": p.gpa} for p in top_performances]
+    
+    at_risk_performances = SemesterPerformance.objects.select_related("student__user").filter(gpa__lt=1.5).order_by("gpa")[:10]
+    at_risk_students = [{"student": p.student, "gpa": p.gpa} for p in at_risk_performances]
 
-    # ================= COURSE STATS =================
+    # Course stats - use Avg in DB
     course_stats = []
-    for semester in Semester.objects.prefetch_related("courses").order_by("year", "name"):
-        semester_courses = []
-        for course in semester.courses.all():
-            results = Result.objects.filter(course=course)
-            count = results.count()
-            avg_mark = round(
-                sum(r.marks for r in results if r.marks is not None) / count, 2
-            ) if count else 0
-            semester_courses.append({
+    for semester in Semester.objects.prefetch_related("courses").order_by("year", "name")[:5]:
+        sem_courses = []
+        for course in semester.courses.all()[:10]:
+            stats = Result.objects.filter(course=course).aggregate(avg=Avg('marks'), count=models.Count('id'))
+            sem_courses.append({
                 "course": course,
-                "average_mark": avg_mark,
-                "total_students": count
+                "average_mark": round(stats['avg'] or 0, 2),
+                "total_students": stats['count']
             })
-        course_stats.append({
-            "semester": semester,
-            "courses": semester_courses
-        })
+        course_stats.append({"semester": semester, "courses": sem_courses})
 
-    # ================= CONTEXT =================
     return render(request, "portal/staff_dashboard.html", {
         "total_students": total_students,
         "total_courses": total_courses,
@@ -425,7 +402,6 @@ def staff_dashboard(request):
         "pass_count": pass_count,
         "fail_count": fail_count,
     })
-
 # =====================================================
 # STAFF PROFILE
 # =====================================================
